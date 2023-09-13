@@ -101,6 +101,31 @@ func TestSolver(t *testing.T) {
 	}
 }
 
+func BenchmarkSolver_Solve(b *testing.B) {
+	varA := NewVariableFromValues("A", []int{0, 1})
+	vara := NewVariableFromValues("a", []int{0, 1})
+	varb := NewVariableFromValues("b", []int{0, 1})
+	varB := NewVariableFromValues("B", []int{0, 1})
+
+	builder := BuildModel()
+	builder.AddDomain(varA.Domain)
+	builder.AddDomain(varB.Domain)
+
+	builder.AddConstraint(equals{varA, vara})
+	builder.AddConstraint(equals{varB, varb})
+	builder.AddConstraint(constraint{vara, varb})
+
+	model := builder.Build()
+
+	solver := NewSolver(model,
+		WithSeed(0),
+	)
+
+	for i := 0; i < b.N; i++ {
+		solver.Solve()
+	}
+}
+
 type largerThan struct {
 	a *Variable[int]
 	b *Variable[int]
