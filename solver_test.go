@@ -171,10 +171,10 @@ func (e equals) GetLinkedDomains() []*Domain {
 
 func (e equals) Propagate(m *Mutator) {
 	if e.a.IsFixed() {
-		m.Add(e.b.Fix(e.a.GetFixedValue()))
+		m.Add(e.b.FixByValue(e.a.GetFixedValue()))
 	}
 	if e.b.IsFixed() {
-		m.Add(e.a.Fix(e.b.GetFixedValue()))
+		m.Add(e.a.FixByValue(e.b.GetFixedValue()))
 	}
 }
 
