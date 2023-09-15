@@ -48,15 +48,15 @@ func nextIndexByProbability(d *Domain) int {
 	probSum := 0.0
 	prev := 0.0
 	for i, idx := range d.indices {
-		if idx.isBanned() || idx.priority() != minPriority {
+		if idx.isBanned() || idx.priority != minPriority {
 			continue
 		}
 
 		cdfIdx = append(cdfIdx, i)
-		nextProb := prev + idx.probability()
+		nextProb := prev + idx.probability
 		cdf = append(cdf, nextProb)
 		prev = nextProb
-		probSum += idx.probability()
+		probSum += idx.probability
 	}
 
 	if len(cdf) == 0 {

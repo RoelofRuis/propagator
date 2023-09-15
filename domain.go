@@ -111,12 +111,12 @@ func (d *Domain) IndexIsBanned(index int) bool {
 
 // IndexPriority returns the priority of the given index.
 func (d *Domain) IndexPriority(index int) int {
-	return d.indices[index].priority()
+	return d.indices[index].priority
 }
 
 // IndexProbability returns the probability of the given index.
 func (d *Domain) IndexProbability(index int) float64 {
-	return d.indices[index].probability()
+	return d.indices[index].probability
 }
 
 // GetFixedIndex returns the fixed index for this domain or -1 if not yet fixed or contradictory.
@@ -139,10 +139,10 @@ func (d *Domain) Entropy() float64 {
 
 	probSum := 0.0
 	for _, idx := range d.indices {
-		if idx.isBanned() || idx.priority() != minPriority {
+		if idx.isBanned() || idx.priority != minPriority {
 			continue
 		}
-		probSum += idx.probability()
+		probSum += idx.probability
 	}
 
 	if probSum == 0.0 {
@@ -151,10 +151,10 @@ func (d *Domain) Entropy() float64 {
 
 	entropy := 0.0
 	for _, idx := range d.indices {
-		if idx.isBanned() || idx.priority() != minPriority {
+		if idx.isBanned() || idx.priority != minPriority {
 			continue
 		}
-		weightedProb := idx.probability() / probSum
+		weightedProb := idx.probability / probSum
 		entropy += weightedProb * math.Log2(weightedProb)
 	}
 	return -entropy
@@ -167,7 +167,7 @@ func (d *Domain) MinPriority() int {
 		if idx.isBanned() {
 			continue
 		}
-		idxPrio := idx.priority()
+		idxPrio := idx.priority
 		if idxPrio < minPriority {
 			minPriority = idxPrio
 		}

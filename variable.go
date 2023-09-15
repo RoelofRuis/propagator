@@ -174,8 +174,8 @@ func (v Variable[T]) String() string {
 	for _, s := range v.states {
 		index := s.Index
 		value := s.Value
-		prob := v.Domain.indices[s.Index].probability()
-		prio := v.Domain.indices[s.Index].priority()
+		prob := v.Domain.indices[s.Index].probability
+		prio := v.Domain.indices[s.Index].priority
 		if v.Domain.IndexIsBanned(s.Index) {
 			str = append(str, fmt.Sprintf("[#%d ✘] (P=%.3f) (%d) %v", index, prob, prio, value))
 		} else {
