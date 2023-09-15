@@ -20,6 +20,8 @@ func (s Sum) GetLinkedDomains() []*propagator.Domain {
 }
 
 func (s Sum) Propagate(m *propagator.Mutator) {
+	// This now is the most naive constraint.
+	// The solution time can be much improved if this function is expanded to work with partial solutions.
 	if s.A.IsFixed() && s.B.IsFixed() && s.Sum.IsFixed() {
 		if s.A.Decimal()+s.B.Decimal() != s.Sum.Decimal() {
 			s.A.Contradict(m)
