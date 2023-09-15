@@ -12,6 +12,7 @@ type Mutator struct {
 func NewMutator() *Mutator {
 	return &Mutator{
 		activeConstraintId: -1,
+		mutations:          make([]Mutation, 0, 10),
 		prevHead:           0,
 		head:               0,
 	}
