@@ -11,10 +11,12 @@ type index struct {
 	probabilityModifiers map[constraintId]float64
 	priorityModifiers    map[constraintId]int
 
-	// pre-calculated current probability
+	// Product of probability modifiers
 	probability float64
-	// pre-calculated current priority
+	// Sum of priority modifiers
 	priority int
+	// Whether the index is currently banned
+	isBanned bool
 }
 
 func newIndex(baseProbability float64, priority int) index {
@@ -23,6 +25,7 @@ func newIndex(baseProbability float64, priority int) index {
 		priorityModifiers:    map[constraintId]int{-1: priority},
 		probability:          baseProbability,
 		priority:             priority,
+		isBanned:             math.Abs(baseProbability) < 1e-10,
 	}
 }
 
@@ -59,6 +62,7 @@ func (i index) adjust(constraint constraintId, probability float64, priority int
 		}
 		adjustedIndex.probabilityModifiers[constraint] = probability
 		adjustedIndex.probability = newProbability * probability
+		adjustedIndex.isBanned = math.Abs(adjustedIndex.probability) < 1e-10
 	}
 
 	if shouldUpdatePriority {
@@ -73,8 +77,4 @@ func (i index) adjust(constraint constraintId, probability float64, priority int
 	}
 
 	return adjustedIndex, true
-}
-
-func (i index) isBanned() bool {
-	return math.Abs(i.probability) < 1e-10
 }

@@ -14,10 +14,11 @@ const (
 
 // Domain represents a domain with states and their indices
 type Domain struct {
-	Name    string      // The name of the domain.
-	indices []index     // The available indices in this domain.
-	state   DomainState // The current state the domain is in.
-	version int         // Monotonically increasing version to track mutations.
+	Name                string      // The name of the domain.
+	indices             []index     // The indices in this domain.
+	availableIndexCount int         // The current number of unbanned indices.
+	state               DomainState // The current state the domain is in.
+	version             int         // Monotonically increasing version to track mutations.
 }
 
 // NewDomain initializes a new domain with a given name and probability distribution of its indices.
@@ -118,7 +119,7 @@ func (d *Domain) WasUpdatedSince(version int) bool {
 
 // IndexIsBanned returns whether the given index state is banned.
 func (d *Domain) IndexIsBanned(index int) bool {
-	return d.indices[index].isBanned()
+	return d.indices[index].isBanned
 }
 
 // IndexPriority returns the priority of the given index.
@@ -151,7 +152,7 @@ func (d *Domain) Entropy() float64 {
 
 	probSum := 0.0
 	for _, idx := range d.indices {
-		if idx.isBanned() || idx.priority != minPriority {
+		if idx.isBanned || idx.priority != minPriority {
 			continue
 		}
 		probSum += idx.probability
@@ -163,7 +164,7 @@ func (d *Domain) Entropy() float64 {
 
 	entropy := 0.0
 	for _, idx := range d.indices {
-		if idx.isBanned() || idx.priority != minPriority {
+		if idx.isBanned || idx.priority != minPriority {
 			continue
 		}
 		weightedProb := idx.probability / probSum
@@ -176,7 +177,7 @@ func (d *Domain) Entropy() float64 {
 func (d *Domain) MinPriority() int {
 	minPriority := math.MaxInt
 	for _, idx := range d.indices {
-		if idx.isBanned() {
+		if idx.isBanned {
 			continue
 		}
 		idxPrio := idx.priority
@@ -191,15 +192,19 @@ func (d *Domain) MinPriority() int {
 func (d *Domain) update() {
 	d.version++
 
+	d.availableIndexCount = 0
 	d.state = Contradiction
+
 	for i := range d.indices {
 		if !d.IndexIsBanned(i) {
-			if d.state == Contradiction {
-				d.state = Fixed
-			} else {
-				d.state = Free
-				break
-			}
+			d.availableIndexCount++
 		}
+	}
+	if d.availableIndexCount == 0 {
+		d.state = Contradiction
+	} else if d.availableIndexCount == 1 {
+		d.state = Fixed
+	} else {
+		d.state = Free
 	}
 }

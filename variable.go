@@ -51,10 +51,12 @@ func DomainsOf[T comparable](variables []*Variable[T]) []*Domain {
 
 // AvailableStates returns all the non-banned states the variable currently holds.
 func (v Variable[T]) AvailableStates() []State[T] {
-	var states []State[T]
+	states := make([]State[T], v.Domain.availableIndexCount)
+	i := 0
 	for _, state := range v.states {
 		if !v.Domain.IndexIsBanned(state.Index) {
-			states = append(states, state)
+			states[i] = state
+			i++
 		}
 	}
 	return states

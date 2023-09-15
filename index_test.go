@@ -6,7 +6,7 @@ import (
 
 func TestNewIndex(t *testing.T) {
 	i := newIndex(1.0, 0)
-	if i.isBanned() {
+	if i.isBanned {
 		t.Fatalf("index should not be banned")
 	}
 	if i.probability != 1.0 {
