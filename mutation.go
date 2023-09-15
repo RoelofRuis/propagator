@@ -72,7 +72,7 @@ type Mutation struct {
 // DoNothing is the update that changes nothing to a domain.
 var DoNothing = Mutation{}
 
-// apply applies the changes defined by this mutation and tracks the changed indices so they can be reverted.
+// apply applies the changes defined by this mutation and tracks the changed indices, so they can be reverted.
 func (u *Mutation) apply() {
 	u.reverseIndices = make(map[int]index)
 	for _, i := range u.indices {

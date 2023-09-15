@@ -53,11 +53,10 @@ func (d *Domain) Fix(index int) Mutation {
 
 // Contradict returns the Mutation that bans all indices, forcing it to be in contradiction.
 func (d *Domain) Contradict() Mutation {
-	var indices []int
+	indices := make([]int, len(d.indices))
 	for i := range d.indices {
-		indices = append(indices, i)
+		indices[i] = i
 	}
-
 	return d.Ban(indices...)
 }
 
@@ -74,6 +73,9 @@ func (d *Domain) UpdateProbability(factor float64, indices ...int) Mutation {
 
 // Update returns the Mutation that changes the given probability and priority for the indicated indices.
 func (d *Domain) Update(probabilityFactor float64, priority int, indices ...int) Mutation {
+	if len(indices) == 0 {
+		return DoNothing
+	}
 	return Mutation{
 		domain:      d,
 		indices:     indices,

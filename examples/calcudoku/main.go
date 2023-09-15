@@ -11,7 +11,7 @@ import (
 type Cell = propagator.Variable[int]
 
 func main() {
-	content, err := os.ReadFile("examples/calcudoku/puzzle6.txt")
+	content, err := os.ReadFile("examples/calcudoku/puzzle3.txt")
 	if err != nil {
 		panic(err)
 	}

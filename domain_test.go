@@ -44,6 +44,19 @@ func TestDomainStates_Free(t *testing.T) {
 	}
 }
 
+func TestDomainStates_Contradict(t *testing.T) {
+	domain := NewDomain("test", []index{newIndex(0.0, 0), newIndex(0.0, 0)})
+	if !domain.IsContradiction() {
+		t.Fatalf("contradicted domain should be in contradiction")
+	}
+	if domain.IsFixed() {
+		t.Fatalf("contradicted domain should not be fixed")
+	}
+	if domain.IsFree() {
+		t.Fatalf("contradicted domain should not be free")
+	}
+}
+
 func TestEntropyAndPriority(t *testing.T) {
 	type test struct {
 		domain              *Domain
