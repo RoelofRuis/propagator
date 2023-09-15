@@ -15,7 +15,7 @@ const (
 // Domain represents a domain with states and their indices
 type Domain struct {
 	Name    string      // The name of the domain.
-	indices []index     // The state of the available indices in this domain.
+	indices []index     // The available indices in this domain.
 	state   DomainState // The current state the domain is in.
 	version int         // Monotonically increasing version to track mutations.
 }
@@ -42,12 +42,24 @@ func (d *Domain) Ban(indices ...int) Mutation {
 
 // Fix returns the Mutation that fixes this domain to the given index.
 func (d *Domain) Fix(index int) Mutation {
-	var indices []int
+	if index >= len(d.indices) {
+		return d.Contradict()
+	}
+
+	indices := make([]int, len(d.indices)-1)
+	skipped := false
 	for i := range d.indices {
-		if i != index {
-			indices = append(indices, i)
+		if i == index {
+			skipped = true
+			continue
+		}
+		if skipped {
+			indices[i-1] = i
+		} else {
+			indices[i] = i
 		}
 	}
+
 	return d.Ban(indices...)
 }
 
