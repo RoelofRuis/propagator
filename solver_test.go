@@ -102,18 +102,20 @@ func TestSolver(t *testing.T) {
 }
 
 func BenchmarkSolver_Solve(b *testing.B) {
-	varA := NewVariableFromValues("A", []int{0, 1})
-	vara := NewVariableFromValues("a", []int{0, 1})
-	varb := NewVariableFromValues("b", []int{0, 1})
-	varB := NewVariableFromValues("B", []int{0, 1})
+	vara := NewVariableFromValues("a", []int{0, 1, 2, 3, 4})
+	varb := NewVariableFromValues("b", []int{0, 1, 2, 3, 4})
+	varc := NewVariableFromValues("c", []int{0, 1, 2, 3, 4})
+	vard := NewVariableFromValues("d", []int{0, 1, 2, 3, 4})
 
 	builder := BuildModel()
-	builder.AddDomain(varA.Domain)
-	builder.AddDomain(varB.Domain)
+	builder.AddDomain(vara.Domain)
+	builder.AddDomain(varb.Domain)
+	builder.AddDomain(varc.Domain)
+	builder.AddDomain(vard.Domain)
 
-	builder.AddConstraint(equals{varA, vara})
-	builder.AddConstraint(equals{varB, varb})
-	builder.AddConstraint(constraint{vara, varb})
+	builder.AddConstraint(equals{vara, varb})
+	builder.AddConstraint(equals{varb, varc})
+	builder.AddConstraint(equals{varc, vard})
 
 	model := builder.Build()
 
