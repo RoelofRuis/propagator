@@ -112,7 +112,7 @@ func TestEntropyAndPriority(t *testing.T) {
 		if math.Abs(gotEntropy-tc.expectedEntropy) > 1e-10 {
 			t.Fatalf("ENTROPY expected %v, got: %v", tc.expectedEntropy, gotEntropy)
 		}
-		gotPriority := tc.domain.MinPriority()
+		gotPriority := tc.domain.minPriority
 		if gotPriority != tc.expectedMinPriority {
 			t.Fatalf("MIN PRIORITY expected %v, got %v", tc.expectedMinPriority, gotPriority)
 		}

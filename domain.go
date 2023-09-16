@@ -18,6 +18,7 @@ type Domain struct {
 	indices             []index     // The indices in this domain.
 	availableIndexCount int         // The current number of unbanned indices.
 	state               DomainState // The current state the domain is in.
+	minPriority         int         // The minimum priority over indices in this domain.
 	version             int         // Monotonically increasing version to track mutations.
 }
 
@@ -148,11 +149,9 @@ func (d *Domain) GetFixedIndex() int {
 // Entropy returns the entropy of this domain, taking into account the priorities of the indices.
 // Only the indices with the non-banned highest priorities will be taken into account.
 func (d *Domain) Entropy() float64 {
-	minPriority := d.MinPriority()
-
 	probSum := 0.0
 	for _, idx := range d.indices {
-		if idx.isBanned || idx.priority != minPriority {
+		if idx.isBanned || idx.priority != d.minPriority {
 			continue
 		}
 		probSum += idx.probability
@@ -164,7 +163,7 @@ func (d *Domain) Entropy() float64 {
 
 	entropy := 0.0
 	for _, idx := range d.indices {
-		if idx.isBanned || idx.priority != minPriority {
+		if idx.isBanned || idx.priority != d.minPriority {
 			continue
 		}
 		weightedProb := idx.probability / probSum
@@ -173,31 +172,20 @@ func (d *Domain) Entropy() float64 {
 	return -entropy
 }
 
-// MinPriority returns the minimal priority value that has unbanned indices. It will return math.MaxInt if no priority is available.
-func (d *Domain) MinPriority() int {
-	minPriority := math.MaxInt
-	for _, idx := range d.indices {
-		if idx.isBanned {
-			continue
-		}
-		idxPrio := idx.priority
-		if idxPrio < minPriority {
-			minPriority = idxPrio
-		}
-	}
-	return minPriority
-}
-
-// update recalculates internal domain state and mutations the version.
+// update recalculates internal domain state and mutates the version.
 func (d *Domain) update() {
 	d.version++
 
 	d.availableIndexCount = 0
 	d.state = Contradiction
+	d.minPriority = math.MaxInt
 
-	for i := range d.indices {
-		if !d.IndexIsBanned(i) {
+	for _, idx := range d.indices {
+		if !idx.isBanned {
 			d.availableIndexCount++
+			if idx.priority < d.minPriority {
+				d.minPriority = idx.priority
+			}
 		}
 	}
 	if d.availableIndexCount == 0 {

@@ -43,7 +43,7 @@ func nextIndexByProbability(d *Domain) int {
 	cdfIdx := make([]int, 0, len(d.indices))
 	cdf := make([]float64, 0, len(d.indices))
 
-	minPriority := d.MinPriority()
+	minPriority := d.minPriority
 
 	probSum := 0.0
 	prev := 0.0
