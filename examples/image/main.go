@@ -13,7 +13,7 @@ import (
 func main() {
 	size := 100
 
-	pixels := SolvePixelMatrix(size)
+	pixels := SolvePixelMatrix(size, time.Now().UnixMicro())
 
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
@@ -35,7 +35,7 @@ func main() {
 	}
 }
 
-func SolvePixelMatrix(size int) [][]*Pixel {
+func SolvePixelMatrix(size int, seed int64) [][]*Pixel {
 	values := make([]uint8, 256)
 	for i := 0; i < 255; i++ {
 		values[i] = uint8(i)
@@ -70,7 +70,11 @@ func SolvePixelMatrix(size int) [][]*Pixel {
 
 	model := builder.Build()
 
-	solver := propagator.NewSolver(model, propagator.WithSeed(time.Now().UnixMicro()))
+	solver := propagator.NewSolver(
+		model,
+		propagator.WithSeed(seed),
+		propagator.SelectDomainsByIndex(),
+	)
 
 	if !solver.Solve() {
 		panic("unable to solve")
