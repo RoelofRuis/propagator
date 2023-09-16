@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	size := 32
+	size := 100
 
 	pixels := SolvePixelMatrix(size)
 

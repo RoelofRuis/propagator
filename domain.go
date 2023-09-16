@@ -18,7 +18,8 @@ type Domain struct {
 	indices             []index     // The indices in this domain.
 	availableIndexCount int         // The current number of unbanned indices.
 	state               DomainState // The current state the domain is in.
-	minPriority         int         // The minimum priority over indices in this domain.
+	minPriority         int         // The minimum priority over unbanned indices.
+	sumProbability      float64     // The sum of probabilities over unbanned indices.
 	version             int         // Monotonically increasing version to track mutations.
 }
 
@@ -149,15 +150,7 @@ func (d *Domain) GetFixedIndex() int {
 // Entropy returns the entropy of this domain, taking into account the priorities of the indices.
 // Only the indices with the non-banned highest priorities will be taken into account.
 func (d *Domain) Entropy() float64 {
-	probSum := 0.0
-	for _, idx := range d.indices {
-		if idx.isBanned || idx.priority != d.minPriority {
-			continue
-		}
-		probSum += idx.probability
-	}
-
-	if probSum == 0.0 {
+	if d.sumProbability == 0.0 {
 		return math.Inf(-1)
 	}
 
@@ -166,7 +159,7 @@ func (d *Domain) Entropy() float64 {
 		if idx.isBanned || idx.priority != d.minPriority {
 			continue
 		}
-		weightedProb := idx.probability / probSum
+		weightedProb := idx.probability / d.sumProbability
 		entropy += weightedProb * math.Log2(weightedProb)
 	}
 	return -entropy
@@ -178,16 +171,26 @@ func (d *Domain) update() {
 
 	d.availableIndexCount = 0
 	d.state = Contradiction
+	d.sumProbability = 0.0
 	d.minPriority = math.MaxInt
 
 	for _, idx := range d.indices {
-		if !idx.isBanned {
-			d.availableIndexCount++
-			if idx.priority < d.minPriority {
-				d.minPriority = idx.priority
-			}
+		if idx.isBanned {
+			continue
+		}
+		d.availableIndexCount++
+		if idx.priority < d.minPriority {
+			d.minPriority = idx.priority
 		}
 	}
+
+	for _, idx := range d.indices {
+		if idx.isBanned || idx.priority != d.minPriority {
+			continue
+		}
+		d.sumProbability += idx.probability
+	}
+
 	if d.availableIndexCount == 0 {
 		d.state = Contradiction
 	} else if d.availableIndexCount == 1 {
