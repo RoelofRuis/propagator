@@ -9,7 +9,7 @@ type House struct {
 	Cells []*Cell
 }
 
-func (h House) GetLinkedDomains() []*propagator.Domain {
+func (h House) Scope() []*propagator.Domain {
 	return propagator.DomainsOf(h.Cells)
 }
 
@@ -32,7 +32,7 @@ type FixedCage struct {
 	Value int
 }
 
-func (c FixedCage) GetLinkedDomains() []*propagator.Domain {
+func (c FixedCage) Scope() []*propagator.Domain {
 	return []*propagator.Domain{c.Cell.Domain}
 }
 
@@ -45,7 +45,7 @@ type SumCage struct {
 	Value int
 }
 
-func (c SumCage) GetLinkedDomains() []*propagator.Domain {
+func (c SumCage) Scope() []*propagator.Domain {
 	return propagator.DomainsOf(c.Cells)
 }
 
@@ -76,7 +76,7 @@ type ProdCage struct {
 	Value int
 }
 
-func (c ProdCage) GetLinkedDomains() []*propagator.Domain {
+func (c ProdCage) Scope() []*propagator.Domain {
 	return propagator.DomainsOf(c.Cells)
 }
 
@@ -101,7 +101,7 @@ type SubCage struct {
 	Value int
 }
 
-func (c SubCage) GetLinkedDomains() []*propagator.Domain {
+func (c SubCage) Scope() []*propagator.Domain {
 	if len(c.Cells) > 3 {
 		// FIXME: this assumes only 2 cells take part
 		panic("subtractive cages with more than two cells not supported")
@@ -153,7 +153,7 @@ type DivCage struct {
 	Value int
 }
 
-func (c DivCage) GetLinkedDomains() []*propagator.Domain {
+func (c DivCage) Scope() []*propagator.Domain {
 	if len(c.Cells) > 2 {
 		// FIXME: this assumes only 2 cells take part
 		panic("division cages with more than two cells not supported")

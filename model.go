@@ -2,7 +2,9 @@ package propagator
 
 // Constraint describes the way domains depend on each other and allows for propagating updated values.
 type Constraint interface {
-	GetLinkedDomains() []*Domain
+	// Scope returns all domains that are influenced by this constraint.
+	Scope() []*Domain
+	// Propagate is called every time a domain in the constraint scope is updated and allows for further updates to be passed.
 	Propagate(m *Mutator)
 }
 
@@ -45,7 +47,7 @@ func (m *ModelBuilder) AddDomain(domain *Domain) {
 // AddConstraint adds a constraint to the model.
 func (m *ModelBuilder) AddConstraint(constraint Constraint) {
 	index := len(m.constraints)
-	linkedDomains := constraint.GetLinkedDomains()
+	linkedDomains := constraint.Scope()
 	if len(linkedDomains) == 0 {
 		panic("cannot use constraint without linked domains")
 	}

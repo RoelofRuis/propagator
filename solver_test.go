@@ -133,7 +133,7 @@ type largerThan struct {
 	b *Variable[int]
 }
 
-func (e largerThan) GetLinkedDomains() []*Domain {
+func (e largerThan) Scope() []*Domain {
 	return []*Domain{e.a.Domain, e.b.Domain}
 }
 
@@ -167,7 +167,7 @@ type equals struct {
 	b *Variable[int]
 }
 
-func (e equals) GetLinkedDomains() []*Domain {
+func (e equals) Scope() []*Domain {
 	return []*Domain{e.a.Domain, e.b.Domain}
 }
 
@@ -185,7 +185,7 @@ type constraint struct {
 	b *Variable[int]
 }
 
-func (c constraint) GetLinkedDomains() []*Domain {
+func (c constraint) Scope() []*Domain {
 	return []*Domain{c.a.Domain, c.b.Domain}
 }
 

@@ -8,7 +8,7 @@ type House struct {
 	Cells []*Cell
 }
 
-func (h House) GetLinkedDomains() []*propagator.Domain {
+func (h House) Scope() []*propagator.Domain {
 	return propagator.DomainsOf(h.Cells)
 }
 

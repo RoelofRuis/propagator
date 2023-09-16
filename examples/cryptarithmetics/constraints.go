@@ -8,10 +8,10 @@ type Sum struct {
 	Sum Number
 }
 
-func (s Sum) GetLinkedDomains() []*propagator.Domain {
-	aDomains := s.A.GetLinkedDomains()
-	bDomains := s.B.GetLinkedDomains()
-	sumDomains := s.Sum.GetLinkedDomains()
+func (s Sum) Scope() []*propagator.Domain {
+	aDomains := s.A.Scope()
+	bDomains := s.B.Scope()
+	sumDomains := s.Sum.Scope()
 	res := make([]*propagator.Domain, len(aDomains)+len(bDomains)+len(sumDomains))
 	copy(res[0:], aDomains)
 	copy(res[len(aDomains):], bDomains)
@@ -35,7 +35,7 @@ type Number struct {
 	Variables []*propagator.Variable[int]
 }
 
-func (n Number) GetLinkedDomains() []*propagator.Domain {
+func (n Number) Scope() []*propagator.Domain {
 	return propagator.DomainsOf(n.Variables)
 }
 
@@ -77,7 +77,7 @@ type AllDifferent struct {
 	Variables []*propagator.Variable[int]
 }
 
-func (a AllDifferent) GetLinkedDomains() []*propagator.Domain {
+func (a AllDifferent) Scope() []*propagator.Domain {
 	return propagator.DomainsOf(a.Variables)
 }
 
