@@ -57,16 +57,16 @@ func (m *ModelBuilder) AddDomain(domain *Domain) {
 // AddConstraint adds a constraint to the model.
 func (m *ModelBuilder) AddConstraint(constraint Constraint) {
 	index := len(m.constraints)
-	linkedDomains := constraint.Scope()
-	if len(linkedDomains) == 0 {
+	domainsInScope := constraint.Scope()
+	if len(domainsInScope) == 0 {
 		panic("cannot use constraint without linked domains")
 	}
 
-	m.constraints = append(m.constraints, boundConstraint{constraint, linkedDomains})
-	for _, v := range linkedDomains {
-		constraintLinks := m.domainConstraints[v]
+	m.constraints = append(m.constraints, boundConstraint{constraint, domainsInScope})
+	for _, domainInScope := range domainsInScope {
+		constraintLinks := m.domainConstraints[domainInScope]
 		constraintLinks = append(constraintLinks, index)
-		m.domainConstraints[v] = constraintLinks
+		m.domainConstraints[domainInScope] = constraintLinks
 	}
 }
 

@@ -2,6 +2,8 @@ package propagator
 
 import (
 	"log"
+	"reflect"
+	"strings"
 )
 
 type SolverOption func(solver *Solver)
@@ -33,6 +35,22 @@ func LogInfo() SolverOption {
 		})
 		s.events.Subscribe(PropagateRound, func() {
 			log.Printf("[SOLVER] Propagate round [Queue size %d]\n", s.queue.Length())
+		})
+	}
+}
+
+func LogConstraints(model Model) SolverOption {
+	return func(s *Solver) {
+		s.events.Subscribe(Start, func() {
+			log.Printf("CONSTRAINTS:\n")
+			for i, boundConstraint := range model.constraints {
+				constraintName := reflect.TypeOf(boundConstraint.constraint)
+				var links []string
+				for _, domain := range boundConstraint.linkedDomains {
+					links = append(links, domain.Name)
+				}
+				log.Printf("%-4d %s\n     %s\n", i, constraintName, strings.Join(links, " "))
+			}
 		})
 	}
 }
