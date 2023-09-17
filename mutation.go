@@ -75,6 +75,7 @@ var DoNothing = Mutation{}
 
 // apply applies the changes defined by this mutation and tracks the changed indices, so they can be reverted.
 func (u *Mutation) apply() {
+	// FIXME: this is memory consuming
 	u.reverseIndices = make(map[int]index)
 	for _, i := range u.indices {
 		newIndex, isUpdated := u.domain.indices[i].adjust(

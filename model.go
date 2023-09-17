@@ -73,8 +73,8 @@ func (m *ModelBuilder) AddConstraint(constraint Constraint) {
 // Build returns the completely initialized model.
 func (m *ModelBuilder) Build() Model {
 	return Model{
+		domains:           m.domains,
 		domainConstraints: m.domainConstraints,
 		constraints:       m.constraints,
-		domains:           m.domains,
 	}
 }

@@ -19,6 +19,7 @@ type index struct {
 	isBanned bool
 }
 
+// FIXME: this is memory consuming
 func newIndex(baseProbability float64, priority int) index {
 	return index{
 		probabilityModifiers: map[constraintId]float64{-1: baseProbability},
@@ -29,6 +30,7 @@ func newIndex(baseProbability float64, priority int) index {
 	}
 }
 
+// FIXME: this is memory consuming
 func (i index) adjust(constraint constraintId, probability float64, priority int) (index, bool) {
 	currentProbability, has := i.probabilityModifiers[constraint]
 	if !has {
