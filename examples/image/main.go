@@ -11,21 +11,33 @@ import (
 )
 
 func main() {
-	size := 100
+	size := 64
 
-	solver := propagator.NewSolver(
+	solverR := propagator.NewSolver(
 		propagator.WithSeed(time.Now().UnixMicro()),
 		propagator.SelectDomainsByIndex(),
 	)
+	solverG := propagator.NewSolver(
+		propagator.WithSeed(time.Now().UnixMicro()+42),
+		propagator.SelectDomainsByIndex(),
+	)
+	solverB := propagator.NewSolver(
+		propagator.WithSeed(time.Now().UnixMicro()+84),
+		propagator.SelectDomainsByIndex(),
+	)
 
-	pixels := SolvePixelMatrix(size, solver)
+	pixelsR := SolvePixelMatrix(size, solverR)
+	pixelsG := SolvePixelMatrix(size, solverG)
+	pixelsB := SolvePixelMatrix(size, solverB)
 
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
 	for y := 0; y < size; y++ {
 		for x := 0; x < size; x++ {
-			value := pixels[x][y].GetFixedValue()
-			img.Set(x, y, color.RGBA{R: value, G: value, B: value, A: 255})
+			valueR := pixelsR[x][y].GetFixedValue()
+			valueG := pixelsG[x][y].GetFixedValue()
+			valueB := pixelsB[x][y].GetFixedValue()
+			img.Set(x, y, color.RGBA{R: valueR, G: valueG, B: valueB, A: 255})
 		}
 	}
 
