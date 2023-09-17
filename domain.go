@@ -20,6 +20,7 @@ type Domain struct {
 	state               DomainState // The current state the domain is in.
 	minPriority         int         // The minimum priority over unbanned indices.
 	sumProbability      float64     // The sum of probabilities over unbanned indices.
+	entropy             float64     // The current entropy, or +Inf if not yet calculated.
 	version             int         // Monotonically increasing version to track mutations.
 }
 
@@ -150,8 +151,14 @@ func (d *Domain) GetFixedIndex() int {
 // Entropy returns the entropy of this domain, taking into account the priorities of the indices.
 // Only the indices with the non-banned highest priorities will be taken into account.
 func (d *Domain) Entropy() float64 {
+	// Calculate the entropy only once and then used cached version
+	if !math.IsInf(d.entropy, +1) {
+		return d.entropy
+	}
+
 	if d.sumProbability == 0.0 {
-		return math.Inf(-1)
+		d.entropy = math.Inf(-1)
+		return d.entropy
 	}
 
 	entropy := 0.0
@@ -162,7 +169,8 @@ func (d *Domain) Entropy() float64 {
 		weightedProb := idx.probability / d.sumProbability
 		entropy += weightedProb * math.Log2(weightedProb)
 	}
-	return -entropy
+	d.entropy = -entropy
+	return d.entropy
 }
 
 // update recalculates internal domain state and mutates the version.
@@ -173,6 +181,7 @@ func (d *Domain) update() {
 	d.state = Contradiction
 	d.sumProbability = 0.0
 	d.minPriority = math.MaxInt
+	d.entropy = math.Inf(+1)
 
 	for _, idx := range d.indices {
 		if idx.isBanned {
