@@ -21,7 +21,7 @@ type State[T comparable] struct {
 // The domain values allow for specifying the initial probability and the priority.
 func NewVariable[T comparable](name string, values []DomainValue[T]) *Variable[T] {
 	states := make([]State[T], len(values))
-	indices := make([]index, len(values))
+	indices := make([]*index, len(values))
 
 	for idx, value := range values {
 		states[idx] = State[T]{idx, value.Value}

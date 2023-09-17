@@ -20,8 +20,8 @@ type index struct {
 }
 
 // FIXME: this is memory consuming
-func newIndex(baseProbability float64, priority int) index {
-	return index{
+func newIndex(baseProbability float64, priority int) *index {
+	return &index{
 		probabilityModifiers: map[constraintId]float64{-1: baseProbability},
 		priorityModifiers:    map[constraintId]int{-1: priority},
 		probability:          baseProbability,
@@ -31,7 +31,7 @@ func newIndex(baseProbability float64, priority int) index {
 }
 
 // FIXME: this is memory consuming
-func (i index) adjust(constraint constraintId, probability float64, priority int) (index, bool) {
+func (i *index) adjust(constraint constraintId, probability float64, priority int) (*index, bool) {
 	currentProbability, has := i.probabilityModifiers[constraint]
 	if !has {
 		currentProbability = 1.0
@@ -48,7 +48,7 @@ func (i index) adjust(constraint constraintId, probability float64, priority int
 		return i, false
 	}
 
-	adjustedIndex := index{
+	adjustedIndex := &index{
 		probabilityModifiers: i.probabilityModifiers,
 		priorityModifiers:    i.priorityModifiers,
 		probability:          i.probability,

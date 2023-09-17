@@ -48,7 +48,7 @@ func (m *Mutator) revertAll() {
 		m.head--
 		m.mutations[m.head].revert()
 	}
-	m.mutations = []Mutation{}
+	m.mutations = make([]Mutation, 0, 10)
 }
 
 func (m *Mutator) revertPrevious() {
@@ -67,7 +67,7 @@ type Mutation struct {
 	priority    int
 
 	constraintId   constraintId
-	reverseIndices map[int]index
+	reverseIndices map[int]*index
 }
 
 // DoNothing is the update that changes nothing to a domain.
@@ -76,7 +76,7 @@ var DoNothing = Mutation{}
 // apply applies the changes defined by this mutation and tracks the changed indices, so they can be reverted.
 func (u *Mutation) apply() {
 	// FIXME: this is memory consuming
-	u.reverseIndices = make(map[int]index)
+	u.reverseIndices = make(map[int]*index)
 	for _, i := range u.indices {
 		newIndex, isUpdated := u.domain.indices[i].adjust(
 			u.constraintId,

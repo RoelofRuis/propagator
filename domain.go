@@ -15,7 +15,7 @@ const (
 // Domain represents a domain with states and their indices
 type Domain struct {
 	Name                string      // The name of the domain.
-	indices             []index     // The indices in this domain.
+	indices             []*index    // The indices in this domain.
 	availableIndexCount int         // The current number of unbanned indices.
 	state               DomainState // The current state the domain is in.
 	minPriority         int         // The minimum priority over unbanned indices.
@@ -26,7 +26,7 @@ type Domain struct {
 
 // NewDomain initializes a new domain with a given name and probability distribution of its indices.
 // The given distribution does not have to be normalized.
-func NewDomain(name string, indices []index) *Domain {
+func NewDomain(name string, indices []*index) *Domain {
 	domain := &Domain{
 		Name:    name,
 		indices: indices,
