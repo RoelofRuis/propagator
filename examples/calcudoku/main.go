@@ -82,11 +82,10 @@ func main() {
 	model := builder.Build()
 
 	solver := propagator.NewSolver(
-		model,
 		propagator.LogInfo(),
 	)
 
-	if !solver.Solve() {
+	if !solver.Solve(model) {
 		panic("No solution!")
 	}
 

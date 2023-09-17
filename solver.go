@@ -6,7 +6,6 @@ import (
 
 // Solver is responsible for solving a given model.
 type Solver struct {
-	model          Model
 	rndSeed        int64
 	nextDomain     domainPicker
 	nextIndex      indexPicker
@@ -30,9 +29,8 @@ const (
 	Select         SolverEvent = "Select"
 )
 
-func NewSolver(m Model, options ...SolverOption) Solver {
+func NewSolver(options ...SolverOption) Solver {
 	solver := Solver{
-		model:          m,
 		rndSeed:        0,
 		nextDomain:     nextDomainByMinEntropy,
 		nextIndex:      nextIndexByProbability,
@@ -47,15 +45,15 @@ func NewSolver(m Model, options ...SolverOption) Solver {
 	return solver
 }
 
-func (s *Solver) Solve() bool {
+func (s *Solver) Solve(model Model) bool {
 	rand.Seed(s.rndSeed)
 
 	s.events.Publish(Start)
 
-	mutations, success := s.propagate(s.model.domains...)
+	mutations, success := s.propagate(model, model.domains...)
 	if success {
 		s.events.Publish(SearchStart)
-		s.selectNext(0)
+		s.selectNext(0, model)
 	}
 
 	hasSolutions := s.solutionsFound > 0
@@ -68,10 +66,10 @@ func (s *Solver) Solve() bool {
 	return hasSolutions
 }
 
-func (s *Solver) selectNext(level int) bool {
+func (s *Solver) selectNext(level int, model Model) bool {
 	s.events.Publish(Select)
 
-	if s.isSolved() {
+	if model.IsSolved() {
 		s.solutionsFound++
 		s.events.Publish(SolutionFound)
 		if s.maxSolutions > 0 && (s.maxSolutions == s.solutionsFound) {
@@ -79,7 +77,7 @@ func (s *Solver) selectNext(level int) bool {
 		}
 	}
 
-	domain := s.nextDomain(s.model)
+	domain := s.nextDomain(model)
 
 	if domain == nil {
 		return false
@@ -97,9 +95,9 @@ func (s *Solver) selectNext(level int) bool {
 		selectMutations.Add(domain.Fix(selectedIndex))
 		selectMutations.apply()
 
-		propagateMutations, success := s.propagate(domain)
+		propagateMutations, success := s.propagate(model, domain)
 
-		if success && s.selectNext(level+1) {
+		if success && s.selectNext(level+1, model) {
 			return true
 		}
 
@@ -110,7 +108,7 @@ func (s *Solver) selectNext(level int) bool {
 	}
 }
 
-func (s *Solver) propagate(domains ...*Domain) (*Mutator, bool) {
+func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 	s.events.Publish(PropagateStart)
 	s.queue.Enqueue(domains...)
 	mutator := NewMutator()
@@ -124,8 +122,8 @@ func (s *Solver) propagate(domains ...*Domain) (*Mutator, bool) {
 		selectedDomain := s.queue.Dequeue()
 		targetDomains := Set[*Domain]{}
 
-		for _, constraintId := range s.model.domainConstraints[selectedDomain] {
-			constraint := s.model.constraints[constraintId]
+		for _, constraintId := range model.domainConstraints[selectedDomain] {
+			constraint := model.constraints[constraintId]
 
 			mutator.setActiveConstraintId(constraintId)
 			constraint.constraint.Propagate(mutator)
@@ -153,13 +151,4 @@ func (s *Solver) propagate(domains ...*Domain) (*Mutator, bool) {
 			}
 		}
 	}
-}
-
-func (s *Solver) isSolved() bool {
-	for _, domain := range s.model.domains {
-		if !domain.IsFixed() {
-			return false
-		}
-	}
-	return true
 }

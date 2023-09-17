@@ -15,6 +15,16 @@ type Model struct {
 	domains           []*Domain
 }
 
+// IsSolved returns whether this model currently is in a solved state.
+func (m *Model) IsSolved() bool {
+	for _, domain := range m.domains {
+		if !domain.IsFixed() {
+			return false
+		}
+	}
+	return true
+}
+
 type constraintId = int
 
 type boundConstraint struct {

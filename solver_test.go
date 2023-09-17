@@ -19,14 +19,14 @@ func TestSolver_FindAll(t *testing.T) {
 
 	var solutions [][2]int
 
-	solver := NewSolver(model,
+	solver := NewSolver(
 		FindAllSolutions(),
 		On(SolutionFound, func() {
 			solutions = append(solutions, [2]int{varA.GetFixedValue(), varB.GetFixedValue()})
 		}),
 	)
 
-	solver.Solve()
+	solver.Solve(model)
 
 	if len(solutions) != 3 || solutions[0] != [2]int{3, 1} || solutions[1] != [2]int{3, 2} || solutions[2] != [2]int{2, 1} {
 		t.Fatalf("wrong or missing solutions: %v", solutions)
@@ -47,14 +47,14 @@ func TestSolver_FindFirstN(t *testing.T) {
 
 	var solutions [][2]int
 
-	solver := NewSolver(model,
+	solver := NewSolver(
 		FindNSolutions(3),
 		On(SolutionFound, func() {
 			solutions = append(solutions, [2]int{varA.GetFixedValue(), varB.GetFixedValue()})
 		}),
 	)
 
-	solver.Solve()
+	solver.Solve(model)
 
 	if len(solutions) != 3 || solutions[0] != [2]int{4, 1} || solutions[1] != [2]int{4, 3} || solutions[2] != [2]int{4, 2} {
 		t.Fatalf("wrong or missing solutions: %v", solutions)
@@ -81,11 +81,11 @@ func TestSolver(t *testing.T) {
 
 		model := builder.Build()
 
-		solver := NewSolver(model,
+		solver := NewSolver(
 			WithSeed(int64(i)),
 		)
 
-		success := solver.Solve()
+		success := solver.Solve(model)
 
 		if !success {
 			t.Fatalf("Failed to solve [RUN=%d]", i)

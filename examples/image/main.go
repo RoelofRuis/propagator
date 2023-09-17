@@ -71,12 +71,11 @@ func SolvePixelMatrix(size int, seed int64) [][]*Pixel {
 	model := builder.Build()
 
 	solver := propagator.NewSolver(
-		model,
 		propagator.WithSeed(seed),
-		propagator.SelectDomainsByIndex(),
+		//propagator.SelectDomainsByIndex(),
 	)
 
-	if !solver.Solve() {
+	if !solver.Solve(model) {
 		panic("unable to solve")
 	}
 

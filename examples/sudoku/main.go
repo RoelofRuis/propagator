@@ -76,9 +76,9 @@ func main() {
 
 	model := builder.Build()
 
-	solver := propagator.NewSolver(model)
+	solver := propagator.NewSolver()
 
-	if !solver.Solve() {
+	if !solver.Solve(model) {
 		panic("no solution!")
 	}
 
