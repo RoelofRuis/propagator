@@ -48,7 +48,7 @@ func BuildModel() *ModelBuilder {
 	}
 }
 
-// AddDomain adds a domain to the model that will be actively tracked and collapsed.
+// AddDomain adds a domain to the model that will be actively tracked and solved for.
 // Domains not added via this function can still be modified via attached constraints.
 func (m *ModelBuilder) AddDomain(domain *Domain) {
 	m.domains = append(m.domains, domain)
@@ -59,7 +59,7 @@ func (m *ModelBuilder) AddConstraint(constraint Constraint) {
 	index := len(m.constraints)
 	domainsInScope := constraint.Scope()
 	if len(domainsInScope) == 0 {
-		panic("cannot use constraint without linked domains")
+		panic("constraint scope contains no domains")
 	}
 
 	m.constraints = append(m.constraints, boundConstraint{constraint, domainsInScope})

@@ -68,7 +68,7 @@ func TestSolver(t *testing.T) {
 		varb := NewVariableFromValues("b", []int{0, 1})
 		varB := NewVariableFromValues("B", []int{0, 1})
 
-		// vara and varb are hidden domains: they will not be actively collapsed.
+		// vara and varb are hidden domains: they will not be picked/actively solved for.
 		variables := []*Variable[int]{varA, vara, varb, varB}
 
 		builder := BuildModel()

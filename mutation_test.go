@@ -6,7 +6,7 @@ import (
 )
 
 func TestMutation(t *testing.T) {
-	indices := []index{newIndex(1.0, 0), newIndex(0.5, 0)}
+	indices := []*index{newIndex(1.0, 0), newIndex(0.5, 0)}
 
 	domain := NewDomain("test", indices)
 

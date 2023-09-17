@@ -1,6 +1,6 @@
 # Propagator
 
-A library to assist in solving constraint propagation problems.
+A library to assist in solving constraint satisfaction problems using constraint propagation.
 
 See the `examples` folder for applied examples.
 
@@ -32,7 +32,7 @@ type House struct {
 	Cells []*Cell
 }
 
-func (h House) GetLinkedDomains() []*propagator.Domain {
+func (h House) Scope() []*propagator.Domain {
 	return propagator.DomainsOf(h.Cells)
 }
 
@@ -40,7 +40,7 @@ func (h House) Propagate(mutator *propagator.Mutator) {
 	// ... logic omitted ...
 }
 ```
-The `GetLinkedDomains` should return a list of domains that this constraint applies to. As Variables are built on top of domains, these can be easily extracted.
+`Scope` should return a list of domains that this constraint applies to. As Variables are built on top of domains, these can be easily extracted.
 
 The implementation of `Propagate` holds the most important logic. By passing different mutations to the mutator, changes to domain are defined.
 Often, optimizing this implementation can speed up the solution process significantly.
@@ -59,11 +59,11 @@ model := builder.Build()
 
 ### 4 - Solve the model
 
-Solve the model using a solver.
+Solve the model using a solver. Additional `SolverOptions` can be passed when creating a new solver.
 ```go
-solver := propagator.NewSolver(model)
+solver := propagator.NewSolver()
 
-solved := solver.Solve()
+solved := solver.Solve(model)
 
 if (!solved) {
     fmt.Printf("no solution!")
@@ -71,5 +71,3 @@ if (!solved) {
     fmt.Printf("%s", variable.GetFixedValue())
 }
 ```
-Additional `SolverOptions` can be passed when creating a new solver.
-

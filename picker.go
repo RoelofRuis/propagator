@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-// domainPicker selects the next domain to be collapsed.
+// domainPicker selects the next domain for which a value will be picked.
 type domainPicker func(m Model) *Domain
 
 func nextDomainByMinEntropy(m Model) *Domain {
