@@ -19,6 +19,16 @@ type index struct {
 	isBanned bool
 }
 
+var (
+	bannedIndex = &index{
+		probabilityModifiers: nil,
+		priorityModifiers:    nil,
+		probability:          0.0,
+		priority:             math.MaxInt,
+		isBanned:             true,
+	}
+)
+
 // FIXME: this is memory consuming
 func newIndex(baseProbability float64, priority int) *index {
 	return &index{
@@ -32,6 +42,10 @@ func newIndex(baseProbability float64, priority int) *index {
 
 // FIXME: this is memory consuming
 func (i *index) adjust(constraint constraintId, probability float64, priority int) (*index, bool) {
+	if i.isBanned {
+		return i, false
+	}
+
 	currentProbability, has := i.probabilityModifiers[constraint]
 	if !has {
 		currentProbability = 1.0
@@ -46,6 +60,10 @@ func (i *index) adjust(constraint constraintId, probability float64, priority in
 
 	if !shouldUpdateProbability && !shouldUpdatePriority {
 		return i, false
+	}
+
+	if probability == 0.0 {
+		return bannedIndex, true
 	}
 
 	adjustedIndex := &index{
