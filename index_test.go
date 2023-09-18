@@ -5,7 +5,7 @@ import (
 )
 
 func TestNewIndex(t *testing.T) {
-	i := newIndex(1.0, 0)
+	i := indexFactorySingleton.create(1.0, 0)
 	if i.isBanned {
 		t.Fatalf("index should not be banned")
 	}
@@ -15,7 +15,7 @@ func TestNewIndex(t *testing.T) {
 }
 
 func TestAdjustProbability(t *testing.T) {
-	i := newIndex(1.0, 0)
+	i := indexFactorySingleton.create(1.0, 0)
 
 	i2, success := i.adjust(-1, 0.5, 0)
 	if !success {
@@ -29,7 +29,7 @@ func TestAdjustProbability(t *testing.T) {
 }
 
 func TestAdjustPriority(t *testing.T) {
-	i := newIndex(1.0, 0)
+	i := indexFactorySingleton.create(1.0, 0)
 
 	i2, success := i.adjust(-1, 1.0, 1)
 	if !success {

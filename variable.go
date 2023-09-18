@@ -25,7 +25,7 @@ func NewVariable[T comparable](name string, values []DomainValue[T]) *Variable[T
 
 	for idx, value := range values {
 		states[idx] = State[T]{idx, value.Value}
-		indices[idx] = newIndex(value.Probability, value.Priority)
+		indices[idx] = indexFactorySingleton.create(value.Probability, value.Priority)
 	}
 
 	return &Variable[T]{
