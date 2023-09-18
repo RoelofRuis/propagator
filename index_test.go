@@ -4,6 +4,20 @@ import (
 	"testing"
 )
 
+func TestCreate(t *testing.T) {
+	i1 := indexFactorySingleton.create(1.0, 0)
+	i2 := indexFactorySingleton.create(1.0, 0)
+	i3 := indexFactorySingleton.create(2.0, 0)
+
+	if i1 != i2 {
+		t.Fatalf("similar indices should have same reference")
+	}
+
+	if i1 == i3 {
+		t.Fatalf("non-similar indices should have different reference")
+	}
+}
+
 func TestNewIndex(t *testing.T) {
 	i := indexFactorySingleton.create(1.0, 0)
 	if i.isBanned {
