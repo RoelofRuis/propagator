@@ -67,16 +67,21 @@ type Mutation struct {
 	priority    int
 
 	constraintId   constraintId
-	reverseIndices map[int]*index
+	reverseIndices []reverseIndex
 }
 
 // DoNothing is the update that changes nothing to a domain.
 var DoNothing = Mutation{}
 
+// reverseIndex stores an index id together with the previous index, so it can later be reversed.
+type reverseIndex struct {
+	id  int
+	old *index
+}
+
 // apply applies the changes defined by this mutation and tracks the changed indices, so they can be reverted.
 func (u *Mutation) apply() {
-	// FIXME: this is memory consuming
-	u.reverseIndices = make(map[int]*index)
+	u.reverseIndices = make([]reverseIndex, 0, len(u.indices))
 	for _, i := range u.indices {
 		newIndex, isUpdated := u.domain.indices[i].adjust(
 			u.constraintId,
@@ -87,7 +92,7 @@ func (u *Mutation) apply() {
 			continue
 		}
 
-		u.reverseIndices[i] = u.domain.indices[i]
+		u.reverseIndices = append(u.reverseIndices, reverseIndex{id: i, old: u.domain.indices[i]})
 		u.domain.indices[i] = newIndex
 	}
 
@@ -102,8 +107,8 @@ func (u *Mutation) revert() {
 		return
 	}
 
-	for i, oldIndex := range u.reverseIndices {
-		u.domain.indices[i] = oldIndex
+	for _, revIdx := range u.reverseIndices {
+		u.domain.indices[revIdx.id] = revIdx.old
 	}
 
 	u.domain.update()
