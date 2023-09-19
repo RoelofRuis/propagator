@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"math"
 	"os"
 	"time"
 )
@@ -15,15 +16,15 @@ func main() {
 
 	solverR := propagator.NewSolver(
 		propagator.WithSeed(time.Now().UnixMicro()),
-		propagator.SelectDomainsByIndex(),
+		propagator.SelectDomainsAtRandom(),
 	)
 	solverG := propagator.NewSolver(
 		propagator.WithSeed(time.Now().UnixMicro()+42),
-		propagator.SelectDomainsByIndex(),
+		propagator.SelectDomainsAtRandom(),
 	)
 	solverB := propagator.NewSolver(
 		propagator.WithSeed(time.Now().UnixMicro()+84),
-		propagator.SelectDomainsByIndex(),
+		propagator.SelectDomainsAtRandom(),
 	)
 
 	pixelsR := SolvePixelMatrix(size, solverR)
@@ -106,16 +107,33 @@ func (a Adjacency) Scope() []*propagator.Domain {
 }
 
 func (a Adjacency) Propagate(m *propagator.Mutator) {
-	if a.P1.IsFixed() && a.P2.IsFree() {
-		fv := a.P1.GetFixedValue()
-		m.Add(a.P2.BanBy(func(i uint8) bool {
-			return i > (fv+10) || i < (fv-10)
-		}))
+	min1 := math.MaxInt
+	max1 := math.MinInt
+	for _, s := range a.P1.AvailableStates() {
+		if int(s.Value) < min1 {
+			min1 = int(s.Value)
+		}
+		if int(s.Value) > max1 {
+			max1 = int(s.Value)
+		}
 	}
-	if a.P2.IsFixed() && a.P1.IsFree() {
-		fv := a.P2.GetFixedValue()
-		m.Add(a.P1.BanBy(func(i uint8) bool {
-			return i > (fv+10) || i < (fv-10)
-		}))
+
+	m.Add(a.P2.BanBy(func(i uint8) bool {
+		return int(i) > (max1+10) || int(i) < (min1-10)
+	}))
+
+	min2 := math.MaxInt
+	max2 := math.MinInt
+	for _, s := range a.P2.AvailableStates() {
+		if int(s.Value) < min2 {
+			min2 = int(s.Value)
+		}
+		if int(s.Value) > max2 {
+			max2 = int(s.Value)
+		}
 	}
+
+	m.Add(a.P1.BanBy(func(i uint8) bool {
+		return int(i) > (max2+10) || int(i) < (min2-10)
+	}))
 }

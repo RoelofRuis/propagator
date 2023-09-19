@@ -71,7 +71,17 @@ func FindAllSolutions() SolverOption {
 
 // SelectDomainsByIndex select next domains in order by index.
 func SelectDomainsByIndex() SolverOption {
+	return SelectDomainsBy(nextDomainByIndex)
+}
+
+// SelectDomainsAtRandom selects next domains at random.
+func SelectDomainsAtRandom() SolverOption {
+	return SelectDomainsBy(nextDomainAtRandom)
+}
+
+// SelectDomainsBy sets the domain picker function.
+func SelectDomainsBy(picker domainPicker) SolverOption {
 	return func(s *Solver) {
-		s.nextDomain = nextDomainByIndex
+		s.nextDomain = picker
 	}
 }

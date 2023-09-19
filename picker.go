@@ -36,6 +36,16 @@ func nextDomainByIndex(m Model) *Domain {
 	return nil
 }
 
+func nextDomainAtRandom(m Model) *Domain {
+	var validDomains []*Domain
+	for _, domain := range m.domains {
+		if domain.IsFree() {
+			validDomains = append(validDomains, domain)
+		}
+	}
+	return validDomains[rand.Intn(len(validDomains))]
+}
+
 // indexPicker selects the next index from a given domain.
 type indexPicker func(d *Domain) int
 
