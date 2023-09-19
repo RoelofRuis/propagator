@@ -123,14 +123,14 @@ func (e largerThan) Propagate(m *Mutator) {
 			minB = valB
 		}
 	}
-	for _, stateA := range e.a.AvailableStates() {
-		if stateA.Value <= minB {
-			m.Add(e.a.Ban(stateA.Index))
+	for _, stateA := range e.a.AvailableValues() {
+		if stateA <= minB {
+			m.Add(e.a.BanByValue(stateA))
 		}
 	}
-	for _, stateB := range e.b.AvailableStates() {
-		if stateB.Value >= maxA {
-			m.Add(e.b.Ban(stateB.Index))
+	for _, stateB := range e.b.AvailableValues() {
+		if stateB >= maxA {
+			m.Add(e.b.BanByValue(stateB))
 		}
 	}
 }

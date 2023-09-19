@@ -109,12 +109,12 @@ func (a Adjacency) Scope() []*propagator.Domain {
 func (a Adjacency) Propagate(m *propagator.Mutator) {
 	min1 := math.MaxInt
 	max1 := math.MinInt
-	for _, s := range a.P1.AvailableStates() {
-		if int(s.Value) < min1 {
-			min1 = int(s.Value)
+	for _, s := range a.P1.AvailableValues() {
+		if int(s) < min1 {
+			min1 = int(s)
 		}
-		if int(s.Value) > max1 {
-			max1 = int(s.Value)
+		if int(s) > max1 {
+			max1 = int(s)
 		}
 	}
 
@@ -124,12 +124,12 @@ func (a Adjacency) Propagate(m *propagator.Mutator) {
 
 	min2 := math.MaxInt
 	max2 := math.MinInt
-	for _, s := range a.P2.AvailableStates() {
-		if int(s.Value) < min2 {
-			min2 = int(s.Value)
+	for _, s := range a.P2.AvailableValues() {
+		if int(s) < min2 {
+			min2 = int(s)
 		}
-		if int(s.Value) > max2 {
-			max2 = int(s.Value)
+		if int(s) > max2 {
+			max2 = int(s)
 		}
 	}
 

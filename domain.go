@@ -4,24 +4,15 @@ import (
 	"math"
 )
 
-type DomainState int
-
-const (
-	Free          DomainState = 0
-	Fixed         DomainState = 1
-	Contradiction DomainState = 2
-)
-
 // Domain represents a domain with states and their indices
 type Domain struct {
-	Name                string      // The name of the domain.
-	indices             []*index    // The indices in this domain.
-	availableIndexCount int         // The current number of unbanned indices.
-	state               DomainState // The current state the domain is in.
-	minPriority         int         // The minimum priority over unbanned indices.
-	sumProbability      float64     // The sum of probabilities over unbanned indices.
-	entropy             float64     // The current entropy, or +Inf if not yet calculated.
-	version             int         // Monotonically increasing version to track mutations.
+	Name             string   // The name of the domain.
+	indices          []*index // The indices in this domain.
+	availableIndices []int
+	minPriority      int     // The minimum priority over unbanned indices.
+	sumProbability   float64 // The sum of probabilities over unbanned indices.
+	entropy          float64 // The current entropy, or +Inf if not yet calculated.
+	version          int     // Monotonically increasing version to track mutations.
 }
 
 // NewDomain initializes a new domain with a given name and probability distribution of its indices.
@@ -30,7 +21,6 @@ func NewDomain(name string, indices []*index) *Domain {
 	domain := &Domain{
 		Name:    name,
 		indices: indices,
-		state:   Free,
 		version: 0,
 	}
 
@@ -50,18 +40,12 @@ func (d *Domain) Fix(index int) Mutation {
 		return d.Contradict()
 	}
 
-	indices := make([]int, len(d.indices)-1)
-	skipped := false
-	for i := range d.indices {
-		if i == index {
-			skipped = true
+	indices := make([]int, 0, len(d.availableIndices))
+	for _, availableIndex := range d.availableIndices {
+		if availableIndex == index {
 			continue
 		}
-		if skipped {
-			indices[i-1] = i
-		} else {
-			indices[i] = i
-		}
+		indices = append(indices, availableIndex)
 	}
 
 	return d.Ban(indices...)
@@ -69,11 +53,7 @@ func (d *Domain) Fix(index int) Mutation {
 
 // Contradict returns the Mutation that bans all indices, forcing it to be in contradiction.
 func (d *Domain) Contradict() Mutation {
-	indices := make([]int, len(d.indices))
-	for i := range d.indices {
-		indices[i] = i
-	}
-	return d.Ban(indices...)
+	return d.Ban(d.availableIndices...)
 }
 
 // UpdatePriority returns the Mutation that changes the priority of the given indices.
@@ -102,27 +82,22 @@ func (d *Domain) Update(probabilityFactor float64, priority int, indices ...int)
 
 // IsFree returns whether the domain has more than one single available state.
 func (d *Domain) IsFree() bool {
-	return d.state == Free
+	return len(d.availableIndices) > 1
 }
 
 // IsFixed returns whether the domain has only a single available state.
 func (d *Domain) IsFixed() bool {
-	return d.state == Fixed
+	return len(d.availableIndices) == 1
 }
 
 // IsContradiction returns whether the domain has no available states left to choose from.
 func (d *Domain) IsContradiction() bool {
-	return d.state == Contradiction
+	return len(d.availableIndices) == 0
 }
 
 // WasUpdatedSince checks whether the domain was updated since the given version.
 func (d *Domain) WasUpdatedSince(version int) bool {
 	return d.version > version
-}
-
-// IndexIsBanned returns whether the given index state is banned.
-func (d *Domain) IndexIsBanned(index int) bool {
-	return d.indices[index].isBanned
 }
 
 // IndexPriority returns the priority of the given index.
@@ -140,12 +115,7 @@ func (d *Domain) GetFixedIndex() int {
 	if !d.IsFixed() {
 		return -1
 	}
-	for i := range d.indices {
-		if !d.IndexIsBanned(i) {
-			return i
-		}
-	}
-	return -1
+	return d.availableIndices[0]
 }
 
 // Entropy returns the entropy of this domain, taking into account the priorities of the indices.
@@ -177,8 +147,7 @@ func (d *Domain) Entropy() float64 {
 func (d *Domain) update() {
 	d.version++
 
-	d.availableIndexCount = 0
-	d.state = Contradiction
+	availableIndexCount := 0
 	d.sumProbability = 0.0
 	d.minPriority = math.MaxInt
 	d.entropy = math.Inf(+1)
@@ -187,24 +156,19 @@ func (d *Domain) update() {
 		if idx.isBanned {
 			continue
 		}
-		d.availableIndexCount++
+		availableIndexCount++
 		if idx.priority < d.minPriority {
 			d.minPriority = idx.priority
 		}
 	}
 
-	for _, idx := range d.indices {
-		if idx.isBanned || idx.priority != d.minPriority {
-			continue
+	d.availableIndices = make([]int, 0, availableIndexCount)
+	for i, idx := range d.indices {
+		if !idx.isBanned {
+			d.availableIndices = append(d.availableIndices, i)
 		}
-		d.sumProbability += idx.probability
-	}
-
-	if d.availableIndexCount == 0 {
-		d.state = Contradiction
-	} else if d.availableIndexCount == 1 {
-		d.state = Fixed
-	} else {
-		d.state = Free
+		if !idx.isBanned && idx.priority == d.minPriority {
+			d.sumProbability += idx.probability
+		}
 	}
 }

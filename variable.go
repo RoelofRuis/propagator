@@ -8,24 +8,18 @@ import (
 // Variable extends Domain to provide also the specifically typed values belonging to the domain indices.
 type Variable[T comparable] struct {
 	*Domain
-	states []State[T]
-}
-
-// State associates an index with a value.
-type State[T comparable] struct {
-	Index int
-	Value T
+	states []T
 }
 
 // NewVariable instantiates a new variable from a name and a given set of domain values.
 // The domain values allow for specifying the initial probability and the priority.
 func NewVariable[T comparable](name string, values []DomainValue[T]) *Variable[T] {
-	states := make([]State[T], len(values))
 	indices := make([]*index, len(values))
+	states := make([]T, len(values))
 
 	for idx, value := range values {
-		states[idx] = State[T]{idx, value.Value}
 		indices[idx] = indexFactorySingleton.create(value.Probability, value.Priority)
+		states[idx] = value.Value
 	}
 
 	return &Variable[T]{
@@ -49,26 +43,13 @@ func DomainsOf[T comparable](variables []*Variable[T]) []*Domain {
 	return domains
 }
 
-// AvailableStates returns all the non-banned states the variable currently holds.
-func (v Variable[T]) AvailableStates() []State[T] {
-	states := make([]State[T], v.Domain.availableIndexCount)
-	i := 0
-	for _, state := range v.states {
-		if !v.Domain.IndexIsBanned(state.Index) {
-			states[i] = state
-			i++
-		}
+// AvailableValues returns all the non-banned states the variable currently holds.
+func (v Variable[T]) AvailableValues() []T {
+	states := make([]T, 0, len(v.Domain.availableIndices))
+	for _, availableIndex := range v.Domain.availableIndices {
+		states = append(states, v.states[availableIndex])
 	}
 	return states
-}
-
-// AvailableValues returns all the non-banned values the variable currently holds.
-func (v Variable[T]) AvailableValues() []T {
-	var values []T
-	for _, state := range v.AvailableStates() {
-		values = append(values, state.Value)
-	}
-	return values
 }
 
 // RemainsFree returns whether the given value still remains free as a value to be selected.
@@ -78,8 +59,8 @@ func (v Variable[T]) RemainsFree(value T) bool {
 
 // Exists checks whether there exists a non-banned value that passes the provided check.
 func (v Variable[T]) Exists(check func(a T) bool) bool {
-	for _, state := range v.AvailableStates() {
-		if check(state.Value) {
+	for _, state := range v.AvailableValues() {
+		if check(state) {
 			return true
 		}
 	}
@@ -88,8 +69,8 @@ func (v Variable[T]) Exists(check func(a T) bool) bool {
 
 // ForEach checks whether all non-banned values pass the provided check.
 func (v Variable[T]) ForEach(check func(a T) bool) bool {
-	for _, state := range v.AvailableStates() {
-		if !check(state.Value) {
+	for _, state := range v.AvailableValues() {
+		if !check(state) {
 			return false
 		}
 	}
@@ -115,7 +96,7 @@ func (v Variable[T]) GetFixedValue() T {
 	if idx == -1 {
 		panic("Trying to call GetFixedValue on non fixed variable. Use IsFixed to check.")
 	}
-	return v.states[idx].Value
+	return v.states[idx]
 }
 
 // UpdatePriorityByValue returns the Mutation that adjusts the priority of the given value.
@@ -130,9 +111,9 @@ func (v Variable[T]) UpdateProbabilityByValue(factor float64, value T) Mutation 
 
 // UpdateByValue returns teh Mutation that adjusts the probability and priority of the given value.
 func (v Variable[T]) UpdateByValue(probabilityFactor float64, priority int, value T) Mutation {
-	for _, s := range v.AvailableStates() {
-		if value == s.Value {
-			return v.Update(probabilityFactor, priority, s.Index)
+	for _, availableIndex := range v.Domain.availableIndices {
+		if v.states[availableIndex] == value {
+			return v.Update(probabilityFactor, priority, availableIndex)
 		}
 	}
 	return DoNothing
@@ -140,9 +121,9 @@ func (v Variable[T]) UpdateByValue(probabilityFactor float64, priority int, valu
 
 // FixByValue returns the Mutation that fixes this variable to the given value.
 func (v Variable[T]) FixByValue(value T) Mutation {
-	for _, s := range v.AvailableStates() {
-		if value == s.Value {
-			return v.Fix(s.Index)
+	for _, availableIndex := range v.availableIndices {
+		if value == v.states[availableIndex] {
+			return v.Fix(availableIndex)
 		}
 	}
 	return DoNothing
@@ -150,10 +131,10 @@ func (v Variable[T]) FixByValue(value T) Mutation {
 
 // BanBy returns the Mutation that bans all values for which shouldBan evaluates to true.
 func (v Variable[T]) BanBy(shouldBan func(T) bool) Mutation {
-	var indicesToBan []int
-	for _, s := range v.AvailableStates() {
-		if shouldBan(s.Value) {
-			indicesToBan = append(indicesToBan, s.Index)
+	indicesToBan := make([]int, 0, len(v.Domain.availableIndices))
+	for _, availableIndex := range v.Domain.availableIndices {
+		if shouldBan(v.states[availableIndex]) {
+			indicesToBan = append(indicesToBan, availableIndex)
 		}
 	}
 	return v.Ban(indicesToBan...)
@@ -173,12 +154,18 @@ func (v Variable[T]) BanByValue(values ...T) Mutation {
 
 func (v Variable[T]) String() string {
 	var str []string
-	for _, s := range v.states {
-		index := s.Index
-		value := s.Value
-		prob := v.Domain.indices[s.Index].probability
-		prio := v.Domain.indices[s.Index].priority
-		if v.Domain.IndexIsBanned(s.Index) {
+	for index, s := range v.states {
+		value := s
+		prob := v.Domain.indices[index].probability
+		prio := v.Domain.indices[index].priority
+		banned := true
+		for _, availableIndex := range v.Domain.availableIndices {
+			if index == availableIndex {
+				banned = false
+				break
+			}
+		}
+		if banned {
 			str = append(str, fmt.Sprintf("[#%d ✘] (P=%.3f) (%d) %v", index, prob, prio, value))
 		} else {
 			str = append(str, fmt.Sprintf("[#%d ✔] (P=%.3f) (%d) %v", index, prob, prio, value))
