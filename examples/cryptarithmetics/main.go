@@ -42,7 +42,7 @@ func main() {
 
 	for _, letter := range letters {
 		variable := variables[letter]
-		fmt.Printf("%s: %d\n", letter, variable.GetFixedValue())
+		fmt.Printf("%s: %d\n", letter, variable.GetAssignedValue())
 	}
 
 	fmt.Printf("\n%d\n%d\n---- +\n%d", n1.Decimal(), n2.Decimal(), n3.Decimal())

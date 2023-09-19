@@ -91,7 +91,7 @@ func main() {
 
 	for y := 0; y < gridSize; y++ {
 		for x := 0; x < gridSize; x++ {
-			fmt.Printf("[%d]", cells[x][y].GetFixedValue())
+			fmt.Printf("[%d]", cells[x][y].GetAssignedValue())
 		}
 		fmt.Printf("\n")
 	}

@@ -18,7 +18,7 @@ type Model struct {
 // IsSolved returns whether this model currently is in a solved state.
 func (m *Model) IsSolved() bool {
 	for _, domain := range m.domains {
-		if !domain.IsFixed() {
+		if !domain.IsAssigned() {
 			return false
 		}
 	}

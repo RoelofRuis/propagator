@@ -6,6 +6,12 @@ See the `examples` folder for applied examples.
 
 ## How to use
 
+A constraint satisfaction problem consists of variables that can each take on one of multiple values.
+These values are called the variable domain.
+Constraints define relations between these variables, allowing to iteratively reduce the variable domains, until either a solution is found or the problem is unsolvable (there is no combination of values that satisfy all constraints).
+
+Once you have modeled your problem in terms of variables and constraints, proceed to the next steps.
+
 ### 1 - Define your variables
 
 Define the variables that need to be selected.
@@ -37,17 +43,17 @@ func (h House) Scope() []*propagator.Domain {
 }
 
 func (h House) Propagate(mutator *propagator.Mutator) {
-	// ... logic omitted ...
+	/* ... logic omitted ... */
 }
 ```
 `Scope` should return a list of domains that this constraint applies to. As Variables are built on top of domains, these can be easily extracted.
 
-The implementation of `Propagate` holds the most important logic. By passing different mutations to the mutator, changes to domain are defined.
+The implementation of `Propagate` holds the most important logic. By passing different mutations to the mutator, changes to the domain are defined.
 Often, optimizing this implementation can speed up the solution process significantly.
 
 ### 3 - Build a model
 
-Build a model using these variables and constraints.
+Build a model using your variables and constraints.
 ```go
 builder := propagator.BuildModel()
 
@@ -61,7 +67,7 @@ model := builder.Build()
 
 Solve the model using a solver. Additional `SolverOptions` can be passed when creating a new solver.
 ```go
-solver := propagator.NewSolver()
+solver := propagator.NewSolver(/* options */)
 
 solved := solver.Solve(model)
 

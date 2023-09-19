@@ -40,14 +40,14 @@ func (n Number) Scope() []*propagator.Domain {
 }
 
 func (n Number) Propagate(m *propagator.Mutator) {
-	if !n.Variables[0].IsFixed() {
-		m.Add(n.Variables[0].BanByValue(0))
+	if !n.Variables[0].IsAssigned() {
+		m.Add(n.Variables[0].ExcludeByValue(0))
 	}
 }
 
 func (n Number) IsFixed() bool {
 	for _, v := range n.Variables {
-		if !v.IsFixed() {
+		if !v.IsAssigned() {
 			return false
 		}
 	}
@@ -68,7 +68,7 @@ func (n Number) Decimal() int {
 		for n := i + 1; n < numDigits; n++ {
 			pow *= 10
 		}
-		sum += n.Variables[i].GetFixedValue() * pow
+		sum += n.Variables[i].GetAssignedValue() * pow
 	}
 	return sum
 }
@@ -83,10 +83,10 @@ func (a AllDifferent) Scope() []*propagator.Domain {
 
 func (a AllDifferent) Propagate(m *propagator.Mutator) {
 	for _, v := range a.Variables {
-		if v.IsFixed() {
+		if v.IsAssigned() {
 			for _, w := range a.Variables {
 				if w != v {
-					m.Add(w.BanByValue(v.GetFixedValue()))
+					m.Add(w.ExcludeByValue(v.GetAssignedValue()))
 				}
 			}
 		}

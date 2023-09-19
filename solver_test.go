@@ -22,7 +22,7 @@ func TestSolver_FindAll(t *testing.T) {
 	solver := NewSolver(
 		FindAllSolutions(),
 		On(SolutionFound, func() {
-			solutions = append(solutions, [2]int{varA.GetFixedValue(), varB.GetFixedValue()})
+			solutions = append(solutions, [2]int{varA.GetAssignedValue(), varB.GetAssignedValue()})
 		}),
 	)
 
@@ -50,7 +50,7 @@ func TestSolver_FindFirstN(t *testing.T) {
 	solver := NewSolver(
 		FindNSolutions(3),
 		On(SolutionFound, func() {
-			solutions = append(solutions, [2]int{varA.GetFixedValue(), varB.GetFixedValue()})
+			solutions = append(solutions, [2]int{varA.GetAssignedValue(), varB.GetAssignedValue()})
 		}),
 	)
 
@@ -92,9 +92,9 @@ func TestSolver(t *testing.T) {
 		}
 
 		for _, v := range variables {
-			if !v.IsFixed() {
+			if !v.IsAssigned() {
 				t.Fatalf("Failed to fix %s [RUN=%d]", v.Name, i)
-			} else if !(v.GetFixedValue() == 1) {
+			} else if !(v.GetAssignedValue() == 1) {
 				t.Fatalf("Invalid value for %s [RUN=%d]", v.Name, i)
 			}
 		}
@@ -113,24 +113,24 @@ func (e largerThan) Scope() []*Domain {
 func (e largerThan) Propagate(m *Mutator) {
 	maxA := math.MinInt
 	minB := math.MaxInt
-	for _, valA := range e.a.AvailableValues() {
+	for _, valA := range e.a.AllowedValues() {
 		if valA > maxA {
 			maxA = valA
 		}
 	}
-	for _, valB := range e.b.AvailableValues() {
+	for _, valB := range e.b.AllowedValues() {
 		if valB < minB {
 			minB = valB
 		}
 	}
-	for _, stateA := range e.a.AvailableValues() {
+	for _, stateA := range e.a.AllowedValues() {
 		if stateA <= minB {
-			m.Add(e.a.BanByValue(stateA))
+			m.Add(e.a.ExcludeByValue(stateA))
 		}
 	}
-	for _, stateB := range e.b.AvailableValues() {
+	for _, stateB := range e.b.AllowedValues() {
 		if stateB >= maxA {
-			m.Add(e.b.BanByValue(stateB))
+			m.Add(e.b.ExcludeByValue(stateB))
 		}
 	}
 }
@@ -145,11 +145,11 @@ func (e equals) Scope() []*Domain {
 }
 
 func (e equals) Propagate(m *Mutator) {
-	if e.a.IsFixed() {
-		m.Add(e.b.FixByValue(e.a.GetFixedValue()))
+	if e.a.IsAssigned() {
+		m.Add(e.b.AssignByValue(e.a.GetAssignedValue()))
 	}
-	if e.b.IsFixed() {
-		m.Add(e.a.FixByValue(e.b.GetFixedValue()))
+	if e.b.IsAssigned() {
+		m.Add(e.a.AssignByValue(e.b.GetAssignedValue()))
 	}
 }
 
@@ -163,8 +163,8 @@ func (c constraint) Scope() []*Domain {
 }
 
 func (c constraint) Propagate(m *Mutator) {
-	if c.a.IsFixed() && c.b.IsFixed() {
-		if !(c.a.GetFixedValue() == 1 && c.b.GetFixedValue() == 1) {
+	if c.a.IsAssigned() && c.b.IsAssigned() {
+		if !(c.a.GetAssignedValue() == 1 && c.b.GetAssignedValue() == 1) {
 			m.Add(c.a.Contradict(), c.b.Contradict())
 		}
 	}

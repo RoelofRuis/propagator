@@ -30,13 +30,13 @@ func NewDomain(name string, indices []*index) *Domain {
 	return domain
 }
 
-// Ban returns the Mutation that bans the given indices.
-func (d *Domain) Ban(indices ...int) Mutation {
+// Exclude returns the Mutation that excludes the given indices.
+func (d *Domain) Exclude(indices ...int) Mutation {
 	return d.Update(0.0, 0, indices...)
 }
 
-// Fix returns the Mutation that fixes this domain to the given index.
-func (d *Domain) Fix(index int) Mutation {
+// Assign returns the Mutation that assigns this index to this domain.
+func (d *Domain) Assign(index int) Mutation {
 	if index >= len(d.indices) {
 		return d.Contradict()
 	}
@@ -49,12 +49,12 @@ func (d *Domain) Fix(index int) Mutation {
 		indices = append(indices, availableIndex)
 	}
 
-	return d.Ban(indices...)
+	return d.Exclude(indices...)
 }
 
 // Contradict returns the Mutation that bans all indices, forcing it to be in contradiction.
 func (d *Domain) Contradict() Mutation {
-	return d.Ban(d.availableIndices...)
+	return d.Exclude(d.availableIndices...)
 }
 
 // UpdatePriority returns the Mutation that changes the priority of the given indices.
@@ -81,18 +81,18 @@ func (d *Domain) Update(probabilityFactor float64, priority int, indices ...int)
 	}
 }
 
-// IsFree returns whether the domain has more than one single available state.
-func (d *Domain) IsFree() bool {
+// IsUnassigned returns whether the domain has more than one single available state.
+func (d *Domain) IsUnassigned() bool {
 	return len(d.availableIndices) > 1
 }
 
-// IsFixed returns whether the domain has only a single available state.
-func (d *Domain) IsFixed() bool {
+// IsAssigned returns whether the domain has only a single available state.
+func (d *Domain) IsAssigned() bool {
 	return len(d.availableIndices) == 1
 }
 
-// IsContradiction returns whether the domain has no available values left to choose from.
-func (d *Domain) IsContradiction() bool {
+// IsInContradiction returns whether the domain has no available values left to choose from.
+func (d *Domain) IsInContradiction() bool {
 	return len(d.availableIndices) == 0
 }
 
@@ -111,9 +111,9 @@ func (d *Domain) IndexProbability(index int) float64 {
 	return d.indices[index].probability
 }
 
-// GetFixedIndex returns the fixed index for this domain or -1 if not yet fixed or contradictory.
-func (d *Domain) GetFixedIndex() int {
-	if !d.IsFixed() {
+// GetAssignedIndex returns the fixed index for this domain or -1 if not yet assigned or contradictory.
+func (d *Domain) GetAssignedIndex() int {
+	if !d.IsAssigned() {
 		return -1
 	}
 	return d.availableIndices[0]

@@ -35,9 +35,9 @@ func main() {
 
 	for y := 0; y < size; y++ {
 		for x := 0; x < size; x++ {
-			valueR := pixelsR[x][y].GetFixedValue()
-			valueG := pixelsG[x][y].GetFixedValue()
-			valueB := pixelsB[x][y].GetFixedValue()
+			valueR := pixelsR[x][y].GetAssignedValue()
+			valueG := pixelsG[x][y].GetAssignedValue()
+			valueB := pixelsB[x][y].GetAssignedValue()
 			img.Set(x, y, color.RGBA{R: valueR, G: valueG, B: valueB, A: 255})
 		}
 	}
@@ -109,7 +109,7 @@ func (a Adjacency) Scope() []*propagator.Domain {
 func (a Adjacency) Propagate(m *propagator.Mutator) {
 	min1 := math.MaxInt
 	max1 := math.MinInt
-	for _, s := range a.P1.AvailableValues() {
+	for _, s := range a.P1.AllowedValues() {
 		if int(s) < min1 {
 			min1 = int(s)
 		}
@@ -118,13 +118,13 @@ func (a Adjacency) Propagate(m *propagator.Mutator) {
 		}
 	}
 
-	m.Add(a.P2.BanBy(func(i uint8) bool {
+	m.Add(a.P2.ExcludeBy(func(i uint8) bool {
 		return int(i) > (max1+10) || int(i) < (min1-10)
 	}))
 
 	min2 := math.MaxInt
 	max2 := math.MinInt
-	for _, s := range a.P2.AvailableValues() {
+	for _, s := range a.P2.AllowedValues() {
 		if int(s) < min2 {
 			min2 = int(s)
 		}
@@ -133,7 +133,7 @@ func (a Adjacency) Propagate(m *propagator.Mutator) {
 		}
 	}
 
-	m.Add(a.P1.BanBy(func(i uint8) bool {
+	m.Add(a.P1.ExcludeBy(func(i uint8) bool {
 		return int(i) > (max2+10) || int(i) < (min2-10)
 	}))
 }

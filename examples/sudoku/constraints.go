@@ -14,7 +14,7 @@ func (h House) Scope() []*propagator.Domain {
 
 func (h House) Propagate(mutator *propagator.Mutator) {
 	for _, i := range h.Cells {
-		if !i.IsFixed() {
+		if !i.IsAssigned() {
 			continue
 		}
 
@@ -22,7 +22,7 @@ func (h House) Propagate(mutator *propagator.Mutator) {
 			if j == i {
 				continue
 			}
-			mutator.Add(j.BanByValue(i.GetFixedValue()))
+			mutator.Add(j.ExcludeByValue(i.GetAssignedValue()))
 		}
 	}
 }

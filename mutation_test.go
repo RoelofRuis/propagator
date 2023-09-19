@@ -15,9 +15,9 @@ func TestMutation(t *testing.T) {
 
 	mutator := NewMutator()
 
-	mutator.Add(domain.Ban(0))
+	mutator.Add(domain.Exclude(0))
 
-	if !domain.IsFree() {
+	if !domain.IsUnassigned() {
 		t.Errorf("expected free domain before mutation")
 	}
 	if domain.version != 1 {
@@ -27,7 +27,7 @@ func TestMutation(t *testing.T) {
 
 	mutator.apply()
 
-	if !domain.IsFixed() {
+	if !domain.IsAssigned() {
 		t.Errorf("expected fixed domain after mutation")
 	}
 	if domain.version != 2 {
@@ -36,7 +36,7 @@ func TestMutation(t *testing.T) {
 
 	mutator.revertAll()
 
-	if !domain.IsFree() {
+	if !domain.IsUnassigned() {
 		t.Errorf("expected free domain after revert")
 	}
 	if domain.version != 3 {

@@ -7,52 +7,52 @@ import (
 
 func TestDomainStates_Empty(t *testing.T) {
 	domain := NewDomain("test", []*index{})
-	if !domain.IsContradiction() {
+	if !domain.IsInContradiction() {
 		t.Fatalf("empty domain should be in contradiction")
 	}
-	if domain.IsFixed() {
+	if domain.IsAssigned() {
 		t.Fatalf("empty domain should not be fixed")
 	}
-	if domain.IsFree() {
+	if domain.IsUnassigned() {
 		t.Fatalf("empty domain should not be free")
 	}
 }
 
 func TestDomainStates_Fixed(t *testing.T) {
 	domain := NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0)})
-	if domain.IsContradiction() {
+	if domain.IsInContradiction() {
 		t.Fatalf("fixed domain should not be in contradiction")
 	}
-	if !domain.IsFixed() {
+	if !domain.IsAssigned() {
 		t.Fatalf("fixed domain should be fixed")
 	}
-	if domain.IsFree() {
+	if domain.IsUnassigned() {
 		t.Fatalf("fixed domain should not be free")
 	}
 }
 
 func TestDomainStates_Free(t *testing.T) {
 	domain := NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 0)})
-	if domain.IsContradiction() {
+	if domain.IsInContradiction() {
 		t.Fatalf("free domain should not be in contradiction")
 	}
-	if domain.IsFixed() {
+	if domain.IsAssigned() {
 		t.Fatalf("free domain should not be fixed")
 	}
-	if !domain.IsFree() {
+	if !domain.IsUnassigned() {
 		t.Fatalf("free domain should be free")
 	}
 }
 
 func TestDomainStates_Contradict(t *testing.T) {
 	domain := NewDomain("test", []*index{indexFactorySingleton.create(0.0, 0), indexFactorySingleton.create(0.0, 0)})
-	if !domain.IsContradiction() {
+	if !domain.IsInContradiction() {
 		t.Fatalf("contradicted domain should be in contradiction")
 	}
-	if domain.IsFixed() {
+	if domain.IsAssigned() {
 		t.Fatalf("contradicted domain should not be fixed")
 	}
-	if domain.IsFree() {
+	if domain.IsUnassigned() {
 		t.Fatalf("contradicted domain should not be free")
 	}
 }

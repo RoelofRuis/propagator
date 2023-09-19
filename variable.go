@@ -10,7 +10,7 @@ type Variable[T comparable] struct {
 	*Domain
 	// values holds the values associated with the indices of this variable.
 	values []T
-	// exclusionBuffer holds a pre-allocated buffer storing indices collected through BanBy.
+	// exclusionBuffer holds a pre-allocated buffer storing indices collected through ExcludeBy.
 	exclusionBuffer []int
 	// availableValueBuffer holds a pre-allocated buffer storing the list of available values.
 	availableValueBuffer []T
@@ -53,8 +53,8 @@ func DomainsOf[T comparable](variables []*Variable[T]) []*Domain {
 	return domains
 }
 
-// AvailableValues returns all the non-banned values the variable currently holds.
-func (v Variable[T]) AvailableValues() []T {
+// AllowedValues returns all the non-excluded values the variable currently holds.
+func (v Variable[T]) AllowedValues() []T {
 	if v.availableValuesVersion < v.Domain.version {
 		v.availableValueBuffer = v.availableValueBuffer[:0]
 		for _, availableIndex := range v.Domain.availableIndices {
@@ -66,8 +66,8 @@ func (v Variable[T]) AvailableValues() []T {
 	return v.availableValueBuffer
 }
 
-// RemainsFree returns whether the given value still remains free as a value to be selected.
-func (v Variable[T]) RemainsFree(value T) bool {
+// IsValueAllowed returns whether the given value still remains free as a value to be selected.
+func (v Variable[T]) IsValueAllowed(value T) bool {
 	return v.Exists(func(a T) bool { return a == value })
 }
 
@@ -103,12 +103,12 @@ func (v Variable[T]) HasAnyOf(values ...T) bool {
 	})
 }
 
-// GetFixedValue returns the value of the fixed index.
-// It panics if the variable is not fixed: use IsFixed to check for this.
-func (v Variable[T]) GetFixedValue() T {
-	idx := v.GetFixedIndex()
+// GetAssignedValue returns the value of the fixed index.
+// It panics if the variable is not fixed: use IsAssigned to check for this.
+func (v Variable[T]) GetAssignedValue() T {
+	idx := v.GetAssignedIndex()
 	if idx == -1 {
-		panic("Trying to call GetFixedValue on non fixed variable. Use IsFixed to check.")
+		panic("Trying to call GetAssignedValue on non fixed variable. Use IsAssigned to check.")
 	}
 	return v.values[idx]
 }
@@ -133,30 +133,30 @@ func (v Variable[T]) UpdateByValue(probabilityFactor float64, priority int, valu
 	return DoNothing
 }
 
-// FixByValue returns the Mutation that fixes this variable to the given value.
-func (v Variable[T]) FixByValue(value T) Mutation {
+// AssignByValue returns the Mutation that fixes this variable to the given value.
+func (v Variable[T]) AssignByValue(value T) Mutation {
 	for _, availableIndex := range v.availableIndices {
 		if value == v.values[availableIndex] {
-			return v.Fix(availableIndex)
+			return v.Assign(availableIndex)
 		}
 	}
 	return DoNothing
 }
 
-// BanBy returns the Mutation that bans all values for which shouldBan evaluates to true.
-func (v Variable[T]) BanBy(shouldBan func(T) bool) Mutation {
+// ExcludeBy returns the Mutation that bans all values for which shouldBan evaluates to true.
+func (v Variable[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
 	v.exclusionBuffer = v.exclusionBuffer[:0]
 	for _, availableIndex := range v.Domain.availableIndices {
 		if shouldBan(v.values[availableIndex]) {
 			v.exclusionBuffer = append(v.exclusionBuffer, availableIndex)
 		}
 	}
-	return v.Ban(v.exclusionBuffer...)
+	return v.Exclude(v.exclusionBuffer...)
 }
 
-// BanByValue returns the Mutation that bans all the given values.
-func (v Variable[T]) BanByValue(values ...T) Mutation {
-	return v.BanBy(func(a T) bool {
+// ExcludeByValue returns the Mutation that bans all the given values.
+func (v Variable[T]) ExcludeByValue(values ...T) Mutation {
+	return v.ExcludeBy(func(a T) bool {
 		for _, value := range values {
 			if value == a {
 				return true

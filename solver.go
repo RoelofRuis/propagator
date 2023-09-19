@@ -92,7 +92,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 			return false
 		}
 
-		selectMutations.Add(domain.Fix(selectedIndex))
+		selectMutations.Add(domain.Assign(selectedIndex))
 		selectMutations.apply()
 
 		propagateMutations, success := s.propagate(model, domain)
@@ -103,7 +103,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 
 		propagateMutations.revertAll()
 		selectMutations.revertPrevious()
-		selectMutations.Add(domain.Ban(selectedIndex))
+		selectMutations.Add(domain.Exclude(selectedIndex))
 		selectMutations.apply()
 	}
 }
@@ -141,7 +141,7 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 		mutator.apply()
 
 		for domain := range targetDomains {
-			if domain.IsContradiction() {
+			if domain.IsInContradiction() {
 				s.queue.Reset()
 				return mutator, false
 			}

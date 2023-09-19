@@ -12,7 +12,7 @@ func nextDomainByMinEntropy(m Model) *Domain {
 	minEntropy := math.Inf(+1)
 	var nextDomain *Domain
 	for _, domain := range m.domains {
-		if !domain.IsFree() {
+		if !domain.IsUnassigned() {
 			continue
 		}
 
@@ -28,7 +28,7 @@ func nextDomainByMinEntropy(m Model) *Domain {
 
 func nextDomainByIndex(m Model) *Domain {
 	for _, domain := range m.domains {
-		if domain.IsFree() {
+		if domain.IsUnassigned() {
 			return domain
 		}
 	}
@@ -39,7 +39,7 @@ func nextDomainByIndex(m Model) *Domain {
 func nextDomainAtRandom(m Model) *Domain {
 	var validDomains []*Domain
 	for _, domain := range m.domains {
-		if domain.IsFree() {
+		if domain.IsUnassigned() {
 			validDomains = append(validDomains, domain)
 		}
 	}
