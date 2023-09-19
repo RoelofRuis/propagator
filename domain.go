@@ -19,9 +19,10 @@ type Domain struct {
 // The given distribution does not have to be normalized.
 func NewDomain(name string, indices []*index) *Domain {
 	domain := &Domain{
-		Name:    name,
-		indices: indices,
-		version: 0,
+		Name:             name,
+		indices:          indices,
+		availableIndices: make([]int, 0, len(indices)),
+		version:          0,
 	}
 
 	domain.update()
@@ -162,7 +163,7 @@ func (d *Domain) update() {
 		}
 	}
 
-	d.availableIndices = make([]int, 0, availableIndexCount)
+	d.availableIndices = d.availableIndices[:0]
 	for i, idx := range d.indices {
 		if !idx.isBanned {
 			d.availableIndices = append(d.availableIndices, i)

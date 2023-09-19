@@ -14,6 +14,8 @@ type Variable[T comparable] struct {
 	exclusionBuffer []int
 	// availableValueBuffer holds a pre-allocated buffer storing the list of available values.
 	availableValueBuffer []T
+	// availableValuesVersion holds the domain version on which the availableValueBuffer was calculated.
+	availableValuesVersion int
 }
 
 // NewVariable instantiates a new variable from a name and a given set of domain values.
@@ -28,10 +30,11 @@ func NewVariable[T comparable](name string, initialValues []DomainValue[T]) *Var
 	}
 
 	return &Variable[T]{
-		Domain:               NewDomain(name, indices),
-		values:               values,
-		exclusionBuffer:      make([]int, 0, len(initialValues)),
-		availableValueBuffer: make([]T, 0, len(initialValues)),
+		Domain:                 NewDomain(name, indices),
+		values:                 values,
+		exclusionBuffer:        make([]int, 0, len(initialValues)),
+		availableValueBuffer:   make([]T, 0, len(initialValues)),
+		availableValuesVersion: 0,
 	}
 }
 
@@ -52,10 +55,14 @@ func DomainsOf[T comparable](variables []*Variable[T]) []*Domain {
 
 // AvailableValues returns all the non-banned values the variable currently holds.
 func (v Variable[T]) AvailableValues() []T {
-	v.availableValueBuffer = v.availableValueBuffer[:0]
-	for _, availableIndex := range v.Domain.availableIndices {
-		v.availableValueBuffer = append(v.availableValueBuffer, v.values[availableIndex])
+	if v.availableValuesVersion < v.Domain.version {
+		v.availableValueBuffer = v.availableValueBuffer[:0]
+		for _, availableIndex := range v.Domain.availableIndices {
+			v.availableValueBuffer = append(v.availableValueBuffer, v.values[availableIndex])
+		}
+		v.availableValuesVersion = v.Domain.version
 	}
+
 	return v.availableValueBuffer
 }
 
