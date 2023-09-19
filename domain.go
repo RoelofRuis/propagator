@@ -4,7 +4,7 @@ import (
 	"math"
 )
 
-// Domain represents a domain with states and their indices
+// Domain represents a domain with values and their indices
 type Domain struct {
 	Name             string   // The name of the domain.
 	indices          []*index // The indices in this domain.
@@ -90,7 +90,7 @@ func (d *Domain) IsFixed() bool {
 	return len(d.availableIndices) == 1
 }
 
-// IsContradiction returns whether the domain has no available states left to choose from.
+// IsContradiction returns whether the domain has no available values left to choose from.
 func (d *Domain) IsContradiction() bool {
 	return len(d.availableIndices) == 0
 }
