@@ -71,3 +71,7 @@ if (!solved) {
     fmt.Printf("%s", variable.GetFixedValue())
 }
 ```
+
+## Resources
+
+Excellent overview of constraint satisfaction problems: http://aima.cs.berkeley.edu/newchap05.pdf
