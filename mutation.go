@@ -61,7 +61,7 @@ func (m *Mutator) revertPrevious() {
 
 // Mutation defines a mutation to the probability and priority set for the indices of a Domain.
 type Mutation struct {
-	domain      *Domain
+	domain      Domain2
 	indices     []int
 	probability float64
 	priority    int
@@ -83,7 +83,8 @@ type reverseIndex struct {
 func (u *Mutation) apply() {
 	u.reverseIndices = make([]reverseIndex, 0, len(u.indices))
 	for _, i := range u.indices {
-		newIndex, isUpdated := u.domain.indices[i].adjust(
+		oldIndex := u.domain.getIndex(i)
+		newIndex, isUpdated := oldIndex.adjust(
 			u.constraintId,
 			u.probability,
 			u.priority,
@@ -92,8 +93,8 @@ func (u *Mutation) apply() {
 			continue
 		}
 
-		u.reverseIndices = append(u.reverseIndices, reverseIndex{id: i, old: u.domain.indices[i]})
-		u.domain.indices[i] = newIndex
+		u.reverseIndices = append(u.reverseIndices, reverseIndex{id: i, old: oldIndex})
+		u.domain.setIndex(i, newIndex)
 	}
 
 	if len(u.reverseIndices) > 0 {
@@ -108,7 +109,7 @@ func (u *Mutation) revert() {
 	}
 
 	for _, revIdx := range u.reverseIndices {
-		u.domain.indices[revIdx.id] = revIdx.old
+		u.domain.setIndex(revIdx.id, revIdx.old)
 	}
 
 	u.domain.update()

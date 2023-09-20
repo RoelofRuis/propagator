@@ -3,12 +3,26 @@ package propagator
 import "math"
 
 type Domain2 interface {
+	getId() int
+	numIndices() int
+	getIndex(i int) *index
+	setIndex(i int, idx *index)
+	update()
+	getMinPriority() int
+	getVersion() int
 
-	// TODO: what here?
+	GetName() string
+	IsAssigned() bool
+	IsUnassigned() bool
+	IsInContradiction() bool
+	Entropy() float64
+	Assign(i int) Mutation
+	Exclude(i ...int) Mutation
 }
 
 type Variable2[T comparable] struct {
-	Name             string
+	id               int
+	name             string
 	indices          []*index
 	availableIndices []int
 	values           []T
@@ -32,7 +46,7 @@ func NewVariable2[T comparable](name string, initialValues []DomainValue[T]) *Va
 	}
 
 	variable := &Variable2[T]{
-		Name:             name,
+		name:             name,
 		indices:          indices,
 		availableIndices: make([]int, 0, len(indices)),
 		values:           values,
@@ -44,6 +58,10 @@ func NewVariable2[T comparable](name string, initialValues []DomainValue[T]) *Va
 	variable.update()
 
 	return variable
+}
+
+func (v Variable2[T]) GetName() string {
+	return v.name
 }
 
 func (v Variable2[T]) AllowedValues() []T {
@@ -153,10 +171,6 @@ func (v Variable2[T]) IsInContradiction() bool {
 	return len(v.availableIndices) == 0
 }
 
-func (v Variable2[T]) WasUpdatedSince(version int) bool {
-	return v.version > version
-}
-
 func (v Variable2[T]) IndexPriority(index int) int {
 	return v.indices[index].priority
 }
@@ -238,6 +252,30 @@ func (v Variable2[T]) Update(probabilityFactory float64, priority int, indices .
 	}
 }
 
+func (v Variable2[T]) getId() int {
+	return v.id
+}
+
+func (v Variable2[T]) numIndices() int {
+	return len(v.indices)
+}
+
+func (v Variable2[T]) getMinPriority() int {
+	return v.minPriority
+}
+
+func (v Variable2[T]) getIndex(i int) *index {
+	return v.indices[i]
+}
+
+func (v Variable2[T]) setIndex(i int, idx *index) {
+	v.indices[i] = idx
+}
+
+func (v Variable2[T]) getVersion() int {
+	return v.version
+}
+
 func (v Variable2[T]) update() {
 	v.version++
 
@@ -260,4 +298,20 @@ func (v Variable2[T]) update() {
 			v.sumProbability += idx.probability
 		}
 	}
+}
+
+// AsDomainValues instantiates default domain values from a list of values.
+func AsDomainValues[T comparable](values ...T) []DomainValue[T] {
+	domainValues := make([]DomainValue[T], len(values))
+	for i, value := range values {
+		domainValues[i] = DomainValue[T]{0, 1.0, value}
+	}
+	return domainValues
+}
+
+// DomainValue represents the initialization data for a domain value.
+type DomainValue[T comparable] struct {
+	Priority    int
+	Probability float64
+	Value       T
 }

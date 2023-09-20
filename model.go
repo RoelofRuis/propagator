@@ -3,16 +3,16 @@ package propagator
 // Constraint describes the way domains depend on each other and allows for propagating updated values.
 type Constraint interface {
 	// Scope returns all domains that are influenced by this constraint.
-	Scope() []*Domain
+	Scope() []Domain2
 	// Propagate is called every time a domain in the constraint scope is updated and allows for further updates to be passed.
 	Propagate(m *Mutator)
 }
 
 // Model holds the tracked variables and the constraints between them.
 type Model struct {
-	domainConstraints map[*Domain][]constraintId
+	domainConstraints map[Domain2][]constraintId
 	constraints       []boundConstraint
-	domains           []*Domain
+	domains           []Domain2
 }
 
 // IsSolved returns whether this model currently is in a solved state.
@@ -29,28 +29,28 @@ type constraintId = int
 
 type boundConstraint struct {
 	constraint    Constraint
-	linkedDomains []*Domain
+	linkedDomains []Domain2
 }
 
 // ModelBuilder holds information about a model under construction.
 type ModelBuilder struct {
-	domains           []*Domain
-	domainConstraints map[*Domain][]constraintId
+	domains           []Domain2
+	domainConstraints map[Domain2][]constraintId
 	constraints       []boundConstraint
 }
 
 // BuildModel returns an empty model builder which can be used to build a constraint propagation model.
 func BuildModel() *ModelBuilder {
 	return &ModelBuilder{
-		domains:           []*Domain{},
-		domainConstraints: make(map[*Domain][]constraintId),
+		domains:           []Domain2{},
+		domainConstraints: make(map[Domain2][]constraintId),
 		constraints:       []boundConstraint{},
 	}
 }
 
 // AddDomain adds a domain to the model that will be actively tracked and solved for.
 // Domains not added via this function can still be modified via attached constraints.
-func (m *ModelBuilder) AddDomain(domain *Domain) {
+func (m *ModelBuilder) AddDomain(domain Domain2) {
 	m.domains = append(m.domains, domain)
 }
 

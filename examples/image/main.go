@@ -69,9 +69,9 @@ func SolvePixelMatrix(size int, solver propagator.Solver) [][]*Pixel {
 
 	for y := 0; y < size; y++ {
 		for x := 0; x < size; x++ {
-			pixel := propagator.NewVariableFromValues(fmt.Sprintf("%d-%d", x, y), values)
+			pixel := propagator.NewVariable2FromValues(fmt.Sprintf("%d-%d", x, y), values)
 			pixels[x][y] = pixel
-			builder.AddDomain(pixel.Domain)
+			builder.AddDomain(pixel)
 		}
 	}
 
@@ -95,15 +95,15 @@ func SolvePixelMatrix(size int, solver propagator.Solver) [][]*Pixel {
 	return pixels
 }
 
-type Pixel = propagator.Variable[uint8]
+type Pixel = propagator.Variable2[uint8]
 
 type Adjacency struct {
 	P1 *Pixel
 	P2 *Pixel
 }
 
-func (a Adjacency) Scope() []*propagator.Domain {
-	return []*propagator.Domain{a.P1.Domain, a.P2.Domain}
+func (a Adjacency) Scope() []propagator.Domain2 {
+	return []propagator.Domain2{a.P1, a.P2}
 }
 
 func (a Adjacency) Propagate(m *propagator.Mutator) {

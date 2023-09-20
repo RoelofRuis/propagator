@@ -12,7 +12,7 @@ type Solver struct {
 	maxSolutions   int
 	solutionsFound int
 
-	queue  *SetQueue[*Domain]
+	queue  *SetQueue[int]
 	events *PubSub
 }
 
@@ -37,7 +37,7 @@ func NewSolver(options ...SolverOption) Solver {
 		solutionsFound: 0,
 		maxSolutions:   1,
 		events:         NewPubsub(),
-		queue:          NewSetQueue[*Domain](),
+		queue:          NewSetQueue[int](), // domain ids
 	}
 	for _, opt := range options {
 		opt(&solver)
@@ -108,9 +108,11 @@ func (s *Solver) selectNext(level int, model Model) bool {
 	}
 }
 
-func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
+func (s *Solver) propagate(model Model, domains ...Domain2) (*Mutator, bool) {
 	s.events.Publish(PropagateStart)
-	s.queue.Enqueue(domains...)
+	for _, domain := range domains {
+		s.queue.Enqueue(domain.getId())
+	}
 	mutator := NewMutator()
 
 	for {
@@ -119,8 +121,8 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 		}
 		s.events.Publish(PropagateRound)
 
-		selectedDomain := s.queue.Dequeue()
-		targetDomains := Set[*Domain]{}
+		selectedDomain := model.domains[s.queue.Dequeue()]
+		targetDomains := Set[int]{}
 
 		for _, constraintId := range model.domainConstraints[selectedDomain] {
 			constraint := model.constraints[constraintId]
@@ -129,25 +131,25 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 			constraint.constraint.Propagate(mutator)
 
 			for _, targetDomain := range constraint.linkedDomains {
-				targetDomains = targetDomains.Insert(targetDomain)
+				targetDomains = targetDomains.Insert(targetDomain.getId())
 			}
 		}
 
-		versions := make(map[*Domain]int)
-		for domain := range targetDomains {
-			versions[domain] = domain.version
+		versions := make(map[int]int)
+		for targetDomain := range targetDomains {
+			versions[targetDomain] = model.domains[targetDomain].getVersion()
 		}
 
 		mutator.apply()
 
-		for domain := range targetDomains {
-			if domain.IsInContradiction() {
+		for targetDomain := range targetDomains {
+			if model.domains[targetDomain].IsInContradiction() {
 				s.queue.Reset()
 				return mutator, false
 			}
 
-			if domain.WasUpdatedSince(versions[domain]) {
-				s.queue.Enqueue(domain)
+			if model.domains[targetDomain].getVersion() > versions[targetDomain] {
+				s.queue.Enqueue(targetDomain)
 			}
 		}
 	}

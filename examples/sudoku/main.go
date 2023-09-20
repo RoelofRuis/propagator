@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type Cell = propagator.Variable[int]
+type Cell = propagator.Variable2[int]
 
 func main() {
 	content, err := os.ReadFile("examples/sudoku/puzzle1.txt")
@@ -33,14 +33,14 @@ func main() {
 			var cell *Cell
 			switch char {
 			case ".":
-				cell = propagator.NewVariableFromValues(fmt.Sprintf("%d,%d", x, y), values)
+				cell = propagator.NewVariable2FromValues(fmt.Sprintf("%d,%d", x, y), values)
 				break
 			default:
 				val, _ := strconv.ParseInt(char, 10, 64)
-				cell = propagator.NewVariableFromValues(fmt.Sprintf("%d,%d", x, y), []int{int(val)})
+				cell = propagator.NewVariable2FromValues(fmt.Sprintf("%d,%d", x, y), []int{int(val)})
 			}
 			cells[x][y] = cell
-			builder.AddDomain(cell.Domain)
+			builder.AddDomain(cell)
 		}
 	}
 
