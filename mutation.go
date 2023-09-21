@@ -48,7 +48,7 @@ func (m *Mutator) revertAll() {
 		m.head--
 		m.mutations[m.head].revert()
 	}
-	m.mutations = make([]Mutation, 0, 10)
+	m.mutations = m.mutations[:0]
 }
 
 func (m *Mutator) revertPrevious() {
