@@ -24,19 +24,16 @@ type Domain interface {
 }
 
 type Variable[T comparable] struct {
-	id               int
-	name             string
-	indices          []*index
-	availableIndices []int
-	values           []T
-	availableValues  []T
-	indexBuffer      []int
-	minPriority      int
-	sumProbability   float64
-	entropy          float64
-	version          int
-
-	// TODO: map[T]int misschien super handig?
+	id              int
+	name            string
+	indices         []*index
+	values          []T
+	availableValues map[T]int
+	indexBuffer     []int
+	minPriority     int
+	sumProbability  float64
+	entropy         float64
+	version         int
 }
 
 func NewVariable2[T comparable](name string, initialValues []DomainValue[T]) *Variable[T] {
@@ -49,13 +46,12 @@ func NewVariable2[T comparable](name string, initialValues []DomainValue[T]) *Va
 	}
 
 	variable := &Variable[T]{
-		name:             name,
-		indices:          indices,
-		availableIndices: make([]int, 0, len(indices)),
-		values:           values,
-		availableValues:  make([]T, 0, len(indices)),
-		indexBuffer:      make([]int, 0, len(indices)),
-		version:          0,
+		name:            name,
+		indices:         indices,
+		values:          values,
+		indexBuffer:     make([]int, 0, len(indices)),
+		version:         0,
+		availableValues: make(map[T]int, len(indices)),
 	}
 
 	variable.update()
@@ -67,7 +63,7 @@ func (v *Variable[T]) GetName() string {
 	return v.name
 }
 
-func (v *Variable[T]) AllowedValues() []T {
+func (v *Variable[T]) AllowedValues() map[T]int {
 	return v.availableValues
 }
 
@@ -76,7 +72,7 @@ func (v *Variable[T]) IsValueAllowed(value T) bool {
 }
 
 func (v *Variable[T]) Exists(check func(a T) bool) bool {
-	for _, availableValue := range v.availableValues {
+	for availableValue := range v.availableValues {
 		if check(availableValue) {
 			return true
 		}
@@ -85,7 +81,7 @@ func (v *Variable[T]) Exists(check func(a T) bool) bool {
 }
 
 func (v *Variable[T]) ForEach(check func(a T) bool) bool {
-	for _, availableValue := range v.availableValues {
+	for availableValue := range v.availableValues {
 		if !check(availableValue) {
 			return false
 		}
@@ -105,10 +101,12 @@ func (v *Variable[T]) HasAnyOf(values ...T) bool {
 }
 
 func (v *Variable[T]) GetAssignedValue() T {
-	if !v.IsAssigned() {
-		panic("Trying to GetAssignedValue on non fixed variable. Use IsAssigned to check.")
+	if v.IsAssigned() {
+		for availableValue := range v.availableValues {
+			return availableValue
+		}
 	}
-	return v.availableValues[0]
+	panic("Trying to GetAssignedValue on non fixed variable. Use IsAssigned to check.")
 }
 
 func (v *Variable[T]) UpdatePriorityByValue(priority int, value T) Mutation {
@@ -120,8 +118,8 @@ func (v *Variable[T]) UpdateProbabilityByValue(factory float64, value T) Mutatio
 }
 
 func (v *Variable[T]) UpdateByValue(probabilityFactor float64, priority int, value T) Mutation {
-	for _, availableIndex := range v.availableIndices {
-		if v.values[availableIndex] == value {
+	for availableValue, availableIndex := range v.availableValues {
+		if availableValue == value {
 			return v.Update(probabilityFactor, priority, availableIndex)
 		}
 	}
@@ -129,8 +127,8 @@ func (v *Variable[T]) UpdateByValue(probabilityFactor float64, priority int, val
 }
 
 func (v *Variable[T]) AssignByValue(value T) Mutation {
-	for _, availableIndex := range v.availableIndices {
-		if v.values[availableIndex] == value {
+	for availableValue, availableIndex := range v.availableValues {
+		if availableValue == value {
 			return v.Assign(availableIndex)
 		}
 	}
@@ -139,8 +137,8 @@ func (v *Variable[T]) AssignByValue(value T) Mutation {
 
 func (v *Variable[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
 	v.indexBuffer = v.indexBuffer[:0]
-	for _, availableIndex := range v.availableIndices {
-		if shouldBan(v.values[availableIndex]) {
+	for availableValue, availableIndex := range v.availableValues {
+		if shouldBan(availableValue) {
 			v.indexBuffer = append(v.indexBuffer, availableIndex)
 		}
 	}
@@ -210,7 +208,7 @@ func (v *Variable[T]) Assign(index int) Mutation {
 	}
 
 	v.indexBuffer = v.indexBuffer[:0]
-	for _, availableIndex := range v.availableIndices {
+	for _, availableIndex := range v.availableValues {
 		if availableIndex == index {
 			continue
 		}
@@ -225,7 +223,11 @@ func (v *Variable[T]) Exclude(indices ...int) Mutation {
 }
 
 func (v *Variable[T]) Contradict() Mutation {
-	return v.ExcludeByValue(v.availableValues...)
+	v.indexBuffer = v.indexBuffer[:0]
+	for _, availableIndex := range v.availableValues {
+		v.indexBuffer = append(v.indexBuffer, availableIndex)
+	}
+	return v.Exclude(v.indexBuffer...)
 }
 
 func (v *Variable[T]) UpdatePriority(value int, indices ...int) Mutation {
@@ -282,13 +284,11 @@ func (v *Variable[T]) update() {
 	v.sumProbability = 0.0
 	v.minPriority = math.MaxInt
 	v.entropy = math.Inf(+1)
-	v.availableIndices = v.availableIndices[:0]
-	v.availableValues = v.availableValues[:0]
+	clear(v.availableValues)
 
 	for i, idx := range v.indices {
 		if !idx.isBanned {
-			v.availableIndices = append(v.availableIndices, i)
-			v.availableValues = append(v.availableValues, v.values[i])
+			v.availableValues[v.values[i]] = i
 		}
 		if !idx.isBanned && idx.priority < v.minPriority {
 			v.minPriority = idx.priority
