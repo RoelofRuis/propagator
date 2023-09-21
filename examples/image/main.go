@@ -95,14 +95,14 @@ func SolvePixelMatrix(size int, solver propagator.Solver) [][]*Pixel {
 	return pixels
 }
 
-type Pixel = propagator.Variable2[uint8]
+type Pixel = propagator.Variable[uint8]
 
 type Adjacency struct {
 	P1 *Pixel
 	P2 *Pixel
 }
 
-func (a Adjacency) Scope() []propagator.Domain2 {
+func (a Adjacency) Scope() []propagator.Domain {
 	return propagator.DomainsOf(a.P1, a.P2)
 }
 

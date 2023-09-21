@@ -11,7 +11,7 @@ func main() {
 	digits := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
 	builder := propagator.BuildModel()
-	variables := make(map[string]*propagator.Variable2[int])
+	variables := make(map[string]*propagator.Variable[int])
 	allDifferent := AllDifferent{}
 	for _, letter := range letters {
 		variable := propagator.NewVariable2FromValues[int](letter, digits)
@@ -22,9 +22,9 @@ func main() {
 
 	builder.AddConstraint(allDifferent)
 
-	n1 := Number{[]*propagator.Variable2[int]{variables["S"], variables["E"], variables["N"], variables["D"]}}
-	n2 := Number{[]*propagator.Variable2[int]{variables["M"], variables["O"], variables["R"], variables["E"]}}
-	n3 := Number{[]*propagator.Variable2[int]{variables["M"], variables["O"], variables["N"], variables["E"], variables["Y"]}}
+	n1 := Number{[]*propagator.Variable[int]{variables["S"], variables["E"], variables["N"], variables["D"]}}
+	n2 := Number{[]*propagator.Variable[int]{variables["M"], variables["O"], variables["R"], variables["E"]}}
+	n3 := Number{[]*propagator.Variable[int]{variables["M"], variables["O"], variables["N"], variables["E"], variables["Y"]}}
 
 	builder.AddConstraint(n1)
 	builder.AddConstraint(n2)

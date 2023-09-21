@@ -6,11 +6,11 @@ import (
 )
 
 // domainPicker selects the next domain for which a value will be picked.
-type domainPicker func(m Model) Domain2
+type domainPicker func(m Model) Domain
 
-func nextDomainByMinEntropy(m Model) Domain2 {
+func nextDomainByMinEntropy(m Model) Domain {
 	minEntropy := math.Inf(+1)
-	var nextDomain Domain2
+	var nextDomain Domain
 	for _, domain := range m.domains {
 		if !domain.IsUnassigned() {
 			continue
@@ -26,7 +26,7 @@ func nextDomainByMinEntropy(m Model) Domain2 {
 	return nextDomain
 }
 
-func nextDomainByIndex(m Model) Domain2 {
+func nextDomainByIndex(m Model) Domain {
 	for _, domain := range m.domains {
 		if domain.IsUnassigned() {
 			return domain
@@ -36,8 +36,8 @@ func nextDomainByIndex(m Model) Domain2 {
 	return nil
 }
 
-func nextDomainAtRandom(m Model) Domain2 {
-	var validDomains []Domain2
+func nextDomainAtRandom(m Model) Domain {
+	var validDomains []Domain
 	for _, domain := range m.domains {
 		if domain.IsUnassigned() {
 			validDomains = append(validDomains, domain)
@@ -47,9 +47,9 @@ func nextDomainAtRandom(m Model) Domain2 {
 }
 
 // indexPicker selects the next index from a given domain.
-type indexPicker func(d Domain2) int
+type indexPicker func(d Domain) int
 
-func nextIndexByProbability(d Domain2) int {
+func nextIndexByProbability(d Domain) int {
 	cdfIdx := make([]int, 0, d.numIndices())
 	cdf := make([]float64, 0, d.numIndices())
 

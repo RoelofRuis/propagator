@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type Cell = propagator.Variable2[int]
+type Cell = propagator.Variable[int]
 
 func main() {
 	content, err := os.ReadFile("examples/sudoku/puzzle1.txt")

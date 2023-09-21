@@ -108,7 +108,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 	}
 }
 
-func (s *Solver) propagate(model Model, domains ...Domain2) (*Mutator, bool) {
+func (s *Solver) propagate(model Model, domains ...Domain) (*Mutator, bool) {
 	s.events.Publish(PropagateStart)
 	for _, domain := range domains {
 		s.queue.Enqueue(domain.getId())

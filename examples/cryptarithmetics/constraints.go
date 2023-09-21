@@ -8,11 +8,11 @@ type Sum struct {
 	Sum Number
 }
 
-func (s Sum) Scope() []propagator.Domain2 {
+func (s Sum) Scope() []propagator.Domain {
 	aDomains := s.A.Scope()
 	bDomains := s.B.Scope()
 	sumDomains := s.Sum.Scope()
-	res := make([]propagator.Domain2, len(aDomains)+len(bDomains)+len(sumDomains))
+	res := make([]propagator.Domain, len(aDomains)+len(bDomains)+len(sumDomains))
 	copy(res[0:], aDomains)
 	copy(res[len(aDomains):], bDomains)
 	copy(res[len(aDomains)+len(bDomains):], sumDomains)
@@ -32,10 +32,10 @@ func (s Sum) Propagate(m *propagator.Mutator) {
 }
 
 type Number struct {
-	Variables []*propagator.Variable2[int]
+	Variables []*propagator.Variable[int]
 }
 
-func (n Number) Scope() []propagator.Domain2 {
+func (n Number) Scope() []propagator.Domain {
 	return propagator.DomainsOf(n.Variables...)
 }
 
@@ -74,10 +74,10 @@ func (n Number) Decimal() int {
 }
 
 type AllDifferent struct {
-	Variables []*propagator.Variable2[int]
+	Variables []*propagator.Variable[int]
 }
 
-func (a AllDifferent) Scope() []propagator.Domain2 {
+func (a AllDifferent) Scope() []propagator.Domain {
 	return propagator.DomainsOf(a.Variables...)
 }
 

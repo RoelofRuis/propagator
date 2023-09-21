@@ -61,7 +61,7 @@ func (m *Mutator) revertPrevious() {
 
 // Mutation defines a mutation to the probability and priority set for the indices of a Domain.
 type Mutation struct {
-	domain      Domain2
+	domain      Domain
 	indices     []int
 	probability float64
 	priority    int
