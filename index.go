@@ -19,6 +19,7 @@ var (
 )
 
 type indexFactory struct {
+	hash    string
 	indices map[string]*index
 }
 
@@ -27,11 +28,11 @@ func (f *indexFactory) create(probability float64, priority int) *index {
 		return bannedIndex
 	}
 
-	probStr := strconv.FormatFloat(probability, 'f', -1, 64)
-	prioStr := strconv.FormatInt(int64(priority), 10)
-	hash := probStr + prioStr
+	f.hash = ""
+	f.hash += strconv.FormatFloat(probability, 'f', -1, 64)
+	f.hash += strconv.FormatInt(int64(priority), 10)
 
-	storedIndex, has := f.indices[hash]
+	storedIndex, has := f.indices[f.hash]
 	if !has {
 		storedIndex = &index{
 			probabilityModifiers: map[constraintId]float64{-1: probability},
@@ -40,7 +41,7 @@ func (f *indexFactory) create(probability float64, priority int) *index {
 			priority:             priority,
 			isBanned:             false,
 		}
-		f.indices[hash] = storedIndex
+		f.indices[f.hash] = storedIndex
 	}
 	return storedIndex
 }
