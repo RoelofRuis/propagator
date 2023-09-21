@@ -103,7 +103,7 @@ type Adjacency struct {
 }
 
 func (a Adjacency) Scope() []propagator.Domain2 {
-	return []propagator.Domain2{a.P1, a.P2}
+	return propagator.DomainsOf(a.P1, a.P2)
 }
 
 func (a Adjacency) Propagate(m *propagator.Mutator) {

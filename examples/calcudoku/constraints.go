@@ -10,7 +10,7 @@ type House struct {
 }
 
 func (h House) Scope() []propagator.Domain2 {
-	return h.Cells
+	return propagator.DomainsOf(h.Cells...)
 }
 
 func (h House) Propagate(mutator *propagator.Mutator) {
@@ -33,7 +33,7 @@ type FixedCage struct {
 }
 
 func (c FixedCage) Scope() []propagator.Domain2 {
-	return c.Cell
+	return propagator.DomainsOf(c.Cell)
 }
 
 func (c FixedCage) Propagate(mutator *propagator.Mutator) {
@@ -46,7 +46,7 @@ type SumCage struct {
 }
 
 func (c SumCage) Scope() []propagator.Domain2 {
-	return c.Cells
+	return propagator.DomainsOf(c.Cells...)
 }
 
 func (c SumCage) Propagate(mutator *propagator.Mutator) {
@@ -77,7 +77,7 @@ type ProdCage struct {
 }
 
 func (c ProdCage) Scope() []propagator.Domain2 {
-	return c.Cells
+	return propagator.DomainsOf(c.Cells...)
 }
 
 func (c ProdCage) Propagate(mutator *propagator.Mutator) {
@@ -106,7 +106,7 @@ func (c SubCage) Scope() []propagator.Domain2 {
 		// FIXME: this assumes only 2 cells take part
 		panic("subtractive cages with more than two cells not supported")
 	}
-	return c.Cells
+	return propagator.DomainsOf(c.Cells...)
 }
 
 func (c SubCage) Propagate(mutator *propagator.Mutator) {
@@ -158,7 +158,7 @@ func (c DivCage) Scope() []propagator.Domain2 {
 		// FIXME: this assumes only 2 cells take part
 		panic("division cages with more than two cells not supported")
 	}
-	return c.Cells
+	return propagator.DomainsOf(c.Cells...)
 }
 
 func (c DivCage) Propagate(mutator *propagator.Mutator) {

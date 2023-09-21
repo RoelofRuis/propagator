@@ -9,11 +9,7 @@ type House struct {
 }
 
 func (h House) Scope() []propagator.Domain2 {
-	var l []propagator.Domain2
-	for _, c := range h.Cells {
-		l = append(l, propagator.Domain2(c))
-	}
-	return l
+	return propagator.DomainsOf(h.Cells...)
 }
 
 func (h House) Propagate(mutator *propagator.Mutator) {

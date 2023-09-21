@@ -36,7 +36,7 @@ type Number struct {
 }
 
 func (n Number) Scope() []propagator.Domain2 {
-	return []propagator.Domain2(n.Variables)
+	return propagator.DomainsOf(n.Variables...)
 }
 
 func (n Number) Propagate(m *propagator.Mutator) {
@@ -78,7 +78,7 @@ type AllDifferent struct {
 }
 
 func (a AllDifferent) Scope() []propagator.Domain2 {
-	return a.Variables
+	return propagator.DomainsOf(a.Variables...)
 }
 
 func (a AllDifferent) Propagate(m *propagator.Mutator) {

@@ -1,8 +1,11 @@
 package propagator
 
-import "math"
+import (
+	"math"
+)
 
 type Domain2 interface {
+	setId(i int)
 	getId() int
 	numIndices() int
 	getIndex(i int) *index
@@ -60,19 +63,19 @@ func NewVariable2[T comparable](name string, initialValues []DomainValue[T]) *Va
 	return variable
 }
 
-func (v Variable2[T]) GetName() string {
+func (v *Variable2[T]) GetName() string {
 	return v.name
 }
 
-func (v Variable2[T]) AllowedValues() []T {
+func (v *Variable2[T]) AllowedValues() []T {
 	return v.availableValues
 }
 
-func (v Variable2[T]) IsValueAllowed(value T) bool {
+func (v *Variable2[T]) IsValueAllowed(value T) bool {
 	return v.Exists(func(a T) bool { return a == value })
 }
 
-func (v Variable2[T]) Exists(check func(a T) bool) bool {
+func (v *Variable2[T]) Exists(check func(a T) bool) bool {
 	for _, availableValue := range v.availableValues {
 		if check(availableValue) {
 			return true
@@ -81,7 +84,7 @@ func (v Variable2[T]) Exists(check func(a T) bool) bool {
 	return false
 }
 
-func (v Variable2[T]) ForEach(check func(a T) bool) bool {
+func (v *Variable2[T]) ForEach(check func(a T) bool) bool {
 	for _, availableValue := range v.availableValues {
 		if !check(availableValue) {
 			return false
@@ -90,7 +93,7 @@ func (v Variable2[T]) ForEach(check func(a T) bool) bool {
 	return true
 }
 
-func (v Variable2[T]) HasAnyOf(values ...T) bool {
+func (v *Variable2[T]) HasAnyOf(values ...T) bool {
 	return v.Exists(func(a T) bool {
 		for _, value := range values {
 			if a == value {
@@ -101,22 +104,22 @@ func (v Variable2[T]) HasAnyOf(values ...T) bool {
 	})
 }
 
-func (v Variable2[T]) GetAssignedValue() T {
+func (v *Variable2[T]) GetAssignedValue() T {
 	if !v.IsAssigned() {
 		panic("Trying to GetAssignedValue on non fixed variable. Use IsAssigned to check.")
 	}
 	return v.availableValues[0]
 }
 
-func (v Variable2[T]) UpdatePriorityByValue(priority int, value T) Mutation {
+func (v *Variable2[T]) UpdatePriorityByValue(priority int, value T) Mutation {
 	return v.UpdateByValue(1.0, priority, value)
 }
 
-func (v Variable2[T]) UpdateProbabilityByValue(factory float64, value T) Mutation {
+func (v *Variable2[T]) UpdateProbabilityByValue(factory float64, value T) Mutation {
 	return v.UpdateByValue(factory, 0, value)
 }
 
-func (v Variable2[T]) UpdateByValue(probabilityFactor float64, priority int, value T) Mutation {
+func (v *Variable2[T]) UpdateByValue(probabilityFactor float64, priority int, value T) Mutation {
 	for _, availableIndex := range v.availableIndices {
 		if v.values[availableIndex] == value {
 			return v.Update(probabilityFactor, priority, availableIndex)
@@ -125,7 +128,7 @@ func (v Variable2[T]) UpdateByValue(probabilityFactor float64, priority int, val
 	return DoNothing
 }
 
-func (v Variable2[T]) AssignByValue(value T) Mutation {
+func (v *Variable2[T]) AssignByValue(value T) Mutation {
 	for _, availableIndex := range v.availableIndices {
 		if v.values[availableIndex] == value {
 			return v.Assign(availableIndex)
@@ -134,7 +137,7 @@ func (v Variable2[T]) AssignByValue(value T) Mutation {
 	return DoNothing
 }
 
-func (v Variable2[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
+func (v *Variable2[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
 	v.indexBuffer = v.indexBuffer[:0]
 	for _, availableIndex := range v.availableIndices {
 		if shouldBan(v.values[availableIndex]) {
@@ -144,7 +147,7 @@ func (v Variable2[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
 	return v.Exclude(v.indexBuffer...)
 }
 
-func (v Variable2[T]) ExcludeByValue(values ...T) Mutation {
+func (v *Variable2[T]) ExcludeByValue(values ...T) Mutation {
 	return v.ExcludeBy(func(a T) bool {
 		for _, value := range values {
 			if value == a {
@@ -159,34 +162,27 @@ func NewVariable2FromValues[T comparable](name string, values []T) *Variable2[T]
 	return NewVariable2[T](name, AsDomainValues(values...))
 }
 
-func (v Variable2[T]) IsUnassigned() bool {
-	return len(v.availableIndices) > 1
+func (v *Variable2[T]) IsUnassigned() bool {
+	return len(v.availableValues) > 1
 }
 
-func (v Variable2[T]) IsAssigned() bool {
-	return len(v.availableIndices) == 1
+func (v *Variable2[T]) IsAssigned() bool {
+	return len(v.availableValues) == 1
 }
 
-func (v Variable2[T]) IsInContradiction() bool {
-	return len(v.availableIndices) == 0
+func (v *Variable2[T]) IsInContradiction() bool {
+	return len(v.availableValues) == 0
 }
 
-func (v Variable2[T]) IndexPriority(index int) int {
+func (v *Variable2[T]) IndexPriority(index int) int {
 	return v.indices[index].priority
 }
 
-func (v Variable2[T]) IndexProbability(index int) float64 {
+func (v *Variable2[T]) IndexProbability(index int) float64 {
 	return v.indices[index].probability
 }
 
-func (v Variable2[T]) GetAssignedIndex() int { // Is this required?
-	if v.IsAssigned() {
-		return -1
-	}
-	return v.availableIndices[0]
-}
-
-func (v Variable2[T]) Entropy() float64 {
+func (v *Variable2[T]) Entropy() float64 {
 	if !math.IsInf(v.entropy, +1) {
 		return v.entropy
 	}
@@ -208,7 +204,7 @@ func (v Variable2[T]) Entropy() float64 {
 	return v.entropy
 }
 
-func (v Variable2[T]) Assign(index int) Mutation {
+func (v *Variable2[T]) Assign(index int) Mutation {
 	if index >= len(v.indices) {
 		return v.Contradict()
 	}
@@ -224,75 +220,81 @@ func (v Variable2[T]) Assign(index int) Mutation {
 	return v.Exclude(v.indexBuffer...)
 }
 
-func (v Variable2[T]) Exclude(indices ...int) Mutation {
+func (v *Variable2[T]) Exclude(indices ...int) Mutation {
 	return v.Update(0.0, 0, indices...)
 }
 
-func (v Variable2[T]) Contradict() Mutation {
-	return v.Exclude(v.availableIndices...)
+func (v *Variable2[T]) Contradict() Mutation {
+	return v.ExcludeByValue(v.availableValues...)
 }
 
-func (v Variable2[T]) UpdatePriority(value int, indices ...int) Mutation {
+func (v *Variable2[T]) UpdatePriority(value int, indices ...int) Mutation {
 	return v.Update(1.0, value, indices...)
 }
 
-func (v Variable2[T]) UpdateProbability(factor float64, indices ...int) Mutation {
+func (v *Variable2[T]) UpdateProbability(factor float64, indices ...int) Mutation {
 	return v.Update(factor, 0, indices...)
 }
 
-func (v Variable2[T]) Update(probabilityFactory float64, priority int, indices ...int) Mutation {
+func (v *Variable2[T]) Update(probabilityFactory float64, priority int, indices ...int) Mutation {
 	if len(indices) == 0 {
 		return DoNothing
 	}
 	return Mutation{
-		// TODO: FIX domain:      v,
+		domain:      v,
 		indices:     indices,
 		probability: probabilityFactory,
 		priority:    priority,
 	}
 }
 
-func (v Variable2[T]) getId() int {
+func (v *Variable2[T]) setId(id int) {
+	v.id = id
+}
+
+func (v *Variable2[T]) getId() int {
 	return v.id
 }
 
-func (v Variable2[T]) numIndices() int {
+func (v *Variable2[T]) numIndices() int {
 	return len(v.indices)
 }
 
-func (v Variable2[T]) getMinPriority() int {
+func (v *Variable2[T]) getMinPriority() int {
 	return v.minPriority
 }
 
-func (v Variable2[T]) getIndex(i int) *index {
+func (v *Variable2[T]) getIndex(i int) *index {
 	return v.indices[i]
 }
 
-func (v Variable2[T]) setIndex(i int, idx *index) {
+func (v *Variable2[T]) setIndex(i int, idx *index) {
 	v.indices[i] = idx
 }
 
-func (v Variable2[T]) getVersion() int {
+func (v *Variable2[T]) getVersion() int {
 	return v.version
 }
 
-func (v Variable2[T]) update() {
+func (v *Variable2[T]) update() {
 	v.version++
 
 	v.sumProbability = 0.0
 	v.minPriority = math.MaxInt
 	v.entropy = math.Inf(+1)
+	v.availableIndices = v.availableIndices[:0]
+	v.availableValues = v.availableValues[:0]
 
 	for i, idx := range v.indices {
 		if !idx.isBanned {
 			v.availableIndices = append(v.availableIndices, i)
+			v.availableValues = append(v.availableValues, v.values[i])
 		}
 		if !idx.isBanned && idx.priority < v.minPriority {
 			v.minPriority = idx.priority
 		}
 	}
 
-	v.availableIndices = v.availableIndices[:0]
 	for _, idx := range v.indices {
 		if !idx.isBanned && idx.priority == v.minPriority {
 			v.sumProbability += idx.probability
@@ -314,4 +316,12 @@ type DomainValue[T comparable] struct {
 	Priority    int
 	Probability float64
 	Value       T
+}
+
+func DomainsOf[T comparable](vars ...*Variable2[T]) []Domain2 {
+	domains := make([]Domain2, 0, len(vars))
+	for _, v := range vars {
+		domains = append(domains, Domain2(v))
+	}
+	return domains
 }
