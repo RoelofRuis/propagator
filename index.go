@@ -7,7 +7,8 @@ import (
 
 var (
 	indexFactorySingleton = &indexFactory{
-		indices: make(map[string]*index),
+		indices:     make(map[string]*index),
+		floatBuffer: make([]byte, 0, 24),
 	}
 	bannedIndex = &index{
 		probabilityModifiers: nil,
@@ -19,8 +20,9 @@ var (
 )
 
 type indexFactory struct {
-	hash    string
-	indices map[string]*index
+	hash        string
+	floatBuffer []byte
+	indices     map[string]*index
 }
 
 func (f *indexFactory) create(probability float64, priority int) *index {
@@ -29,7 +31,7 @@ func (f *indexFactory) create(probability float64, priority int) *index {
 	}
 
 	f.hash = ""
-	f.hash += strconv.FormatFloat(probability, 'f', -1, 64)
+	f.hash += string(strconv.AppendFloat(f.floatBuffer, probability, 'f', -1, 64))
 	f.hash += strconv.FormatInt(int64(priority), 10)
 
 	storedIndex, has := f.indices[f.hash]

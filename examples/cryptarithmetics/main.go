@@ -14,7 +14,7 @@ func main() {
 	variables := make(map[string]*propagator.Variable[int])
 	allDifferent := AllDifferent{}
 	for _, letter := range letters {
-		variable := propagator.NewVariable2FromValues[int](letter, digits)
+		variable := propagator.NewVariableFromValues[int](letter, digits)
 		builder.AddDomain(variable)
 		variables[letter] = variable
 		allDifferent.Variables = append(allDifferent.Variables, variable)

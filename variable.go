@@ -37,7 +37,7 @@ type Variable[T comparable] struct {
 	version          int
 }
 
-func NewVariable2[T comparable](name string, initialValues []DomainValue[T]) *Variable[T] {
+func NewVariable[T comparable](name string, initialValues []DomainValue[T]) *Variable[T] {
 	indices := make([]*index, len(initialValues))
 	values := make([]T, len(initialValues))
 
@@ -156,8 +156,8 @@ func (v *Variable[T]) ExcludeByValue(values ...T) Mutation {
 	})
 }
 
-func NewVariable2FromValues[T comparable](name string, values []T) *Variable[T] {
-	return NewVariable2[T](name, AsDomainValues(values...))
+func NewVariableFromValues[T comparable](name string, values []T) *Variable[T] {
+	return NewVariable[T](name, AsDomainValues(values...))
 }
 
 func (v *Variable[T]) IsUnassigned() bool {

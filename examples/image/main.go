@@ -69,7 +69,7 @@ func SolvePixelMatrix(size int, solver propagator.Solver) [][]*Pixel {
 
 	for y := 0; y < size; y++ {
 		for x := 0; x < size; x++ {
-			pixel := propagator.NewVariable2FromValues(fmt.Sprintf("%d-%d", x, y), values)
+			pixel := propagator.NewVariableFromValues(fmt.Sprintf("%d-%d", x, y), values)
 			pixels[x][y] = pixel
 			builder.AddDomain(pixel)
 		}

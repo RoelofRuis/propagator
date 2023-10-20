@@ -33,11 +33,11 @@ func main() {
 			var cell *Cell
 			switch char {
 			case ".":
-				cell = propagator.NewVariable2FromValues(fmt.Sprintf("%d,%d", x, y), values)
+				cell = propagator.NewVariableFromValues(fmt.Sprintf("%d,%d", x, y), values)
 				break
 			default:
 				val, _ := strconv.ParseInt(char, 10, 64)
-				cell = propagator.NewVariable2FromValues(fmt.Sprintf("%d,%d", x, y), []int{int(val)})
+				cell = propagator.NewVariableFromValues(fmt.Sprintf("%d,%d", x, y), []int{int(val)})
 			}
 			cells[x][y] = cell
 			builder.AddDomain(cell)

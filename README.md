@@ -8,13 +8,13 @@ See the `examples` folder for applied examples.
 
 A constraint satisfaction problem consists of variables that can each take on one of multiple values.
 These values are called the variable domain.
-Constraints define relations between these variables, allowing to iteratively reduce the variable domains, until either a solution is found or the problem is unsolvable (there is no combination of values that satisfy all constraints).
+Constraints define relations between these variables, allowing to iteratively reduce the variable domains, until either a solution is found, or the problem turns out to be unsolvable, meaning there is no combination of values that satisfy all constraints.
 
 Once you have modeled your problem in terms of variables and constraints, proceed to the next steps.
 
 ### 1 - Define your variables
 
-Define the variables that need to be selected.
+Define the variables for which a value need to be selected.
 
 In the instance of a sudoku puzzle, the variables are the cells with their respective states. The state values are of type `int` (the numbers 1 to 9)
 ```go
