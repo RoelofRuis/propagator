@@ -34,7 +34,6 @@ type boundConstraint struct {
 
 // ModelBuilder holds information about a model under construction.
 type ModelBuilder struct {
-	domainIndex       int
 	domains           []Domain
 	domainConstraints map[Domain][]constraintId
 	constraints       []boundConstraint
@@ -52,8 +51,6 @@ func BuildModel() *ModelBuilder {
 // AddDomain adds a domain to the model that will be actively tracked and solved for.
 // Domains not added via this function can still be modified via attached constraints.
 func (m *ModelBuilder) AddDomain(domain Domain) {
-	domain.setId(m.domainIndex)
-	m.domainIndex++
 	m.domains = append(m.domains, domain)
 }
 

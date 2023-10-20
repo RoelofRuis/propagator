@@ -5,8 +5,6 @@ import (
 )
 
 type Domain interface {
-	setId(i int)
-	getId() int
 	numIndices() int
 	getIndex(i int) *index
 	setIndex(i int, idx *index)
