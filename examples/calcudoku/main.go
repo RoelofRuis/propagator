@@ -32,12 +32,11 @@ func main() {
 		cols[i] = House{}
 	}
 
-	builder := propagator.BuildModel()
+	csp := propagator.NewCSP()
 
 	for y := 0; y < gridSize; y++ {
 		for x := 0; x < gridSize; x++ {
-			cell := propagator.NewVariableFromValues(fmt.Sprintf("%d,%d", x, y), values)
-			builder.AddDomain(cell.Domain)
+			cell := propagator.AddVariableFromValues(csp, fmt.Sprintf("%d,%d", x, y), values)
 			cells[x][y] = cell
 			rows[y].Cells = append(rows[y].Cells, cell)
 			cols[x].Cells = append(cols[x].Cells, cell)
@@ -45,8 +44,8 @@ func main() {
 	}
 
 	for i := 0; i < gridSize; i++ {
-		builder.AddConstraint(rows[i])
-		builder.AddConstraint(cols[i])
+		csp.AddConstraint(rows[i])
+		csp.AddConstraint(cols[i])
 	}
 
 	for i := 1; i < len(lines); i++ {
@@ -62,24 +61,24 @@ func main() {
 		}
 		switch opp {
 		case ".":
-			builder.AddConstraint(FixedCage{Cell: cageCells[0], Value: int(value)})
+			csp.AddConstraint(FixedCage{Cell: cageCells[0], Value: int(value)})
 			break
 		case "+":
-			builder.AddConstraint(SumCage{Cells: cageCells, Value: int(value)})
+			csp.AddConstraint(SumCage{Cells: cageCells, Value: int(value)})
 			break
 		case "*":
-			builder.AddConstraint(ProdCage{Cells: cageCells, Value: int(value)})
+			csp.AddConstraint(ProdCage{Cells: cageCells, Value: int(value)})
 			break
 		case "-":
-			builder.AddConstraint(SubCage{Cells: cageCells, Value: int(value)})
+			csp.AddConstraint(SubCage{Cells: cageCells, Value: int(value)})
 			break
 		case "/":
-			builder.AddConstraint(DivCage{Cells: cageCells, Value: int(value)})
+			csp.AddConstraint(DivCage{Cells: cageCells, Value: int(value)})
 			break
 		}
 	}
 
-	model := builder.Build()
+	model := csp.GetModel()
 
 	solver := propagator.NewSolver(
 		propagator.LogInfo(),

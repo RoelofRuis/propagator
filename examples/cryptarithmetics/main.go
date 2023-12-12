@@ -10,29 +10,28 @@ func main() {
 
 	digits := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-	builder := propagator.BuildModel()
+	csp := propagator.NewCSP()
 	variables := make(map[string]*propagator.Variable[int])
 	allDifferent := AllDifferent{}
 	for _, letter := range letters {
-		variable := propagator.NewVariableFromValues[int](letter, digits)
-		builder.AddDomain(variable.Domain)
+		variable := propagator.AddVariableFromValues[int](csp, letter, digits)
 		variables[letter] = variable
 		allDifferent.Variables = append(allDifferent.Variables, variable)
 	}
 
-	builder.AddConstraint(allDifferent)
+	csp.AddConstraint(allDifferent)
 
 	n1 := Number{[]*propagator.Variable[int]{variables["S"], variables["E"], variables["N"], variables["D"]}}
 	n2 := Number{[]*propagator.Variable[int]{variables["M"], variables["O"], variables["R"], variables["E"]}}
 	n3 := Number{[]*propagator.Variable[int]{variables["M"], variables["O"], variables["N"], variables["E"], variables["Y"]}}
 
-	builder.AddConstraint(n1)
-	builder.AddConstraint(n2)
-	builder.AddConstraint(n3)
+	csp.AddConstraint(n1)
+	csp.AddConstraint(n2)
+	csp.AddConstraint(n3)
 
-	builder.AddConstraint(Sum{n1, n2, n3})
+	csp.AddConstraint(Sum{n1, n2, n3})
 
-	model := builder.Build()
+	model := csp.GetModel()
 
 	solver := propagator.NewSolver()
 

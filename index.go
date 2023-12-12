@@ -63,6 +63,8 @@ type index struct {
 	isBanned bool
 }
 
+// adjust adjusts this index according to the given probability and priority for constraintId. It returns the new index
+// and whether it was possible at all to adjust this index.
 func (i *index) adjust(constraint constraintId, probability float64, priority int) (*index, bool) {
 	if i.isBanned {
 		return i, false

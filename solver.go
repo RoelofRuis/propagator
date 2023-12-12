@@ -86,7 +86,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 	selectMutations := NewMutator()
 
 	for {
-		selectedIndex := s.nextIndex(model, domain)
+		selectedIndex := s.nextIndex(domain)
 		if selectedIndex == -1 {
 			selectMutations.revertAll()
 			return false
@@ -137,7 +137,7 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 
 		versions := make(map[*Domain]int)
 		for targetDomain := range targetDomains {
-			versions[targetDomain] = targetDomain.version
+			versions[targetDomain] = targetDomain.version()
 		}
 
 		mutator.apply()
@@ -148,7 +148,7 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 				return mutator, false
 			}
 
-			if targetDomain.version > versions[targetDomain] {
+			if targetDomain.version() > versions[targetDomain] {
 				s.queue.Enqueue(targetDomain)
 			}
 		}

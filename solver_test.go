@@ -6,16 +6,13 @@ import (
 )
 
 func TestSolver_FindAll(t *testing.T) {
-	varA := NewVariableFromValues("A", []int{1, 2, 3})
-	varB := NewVariableFromValues("B", []int{1, 2, 3})
+	csp := NewCSP()
+	varA := AddVariableFromValues(csp, "A", []int{1, 2, 3})
+	varB := AddVariableFromValues(csp, "B", []int{1, 2, 3})
 
-	builder := BuildModel()
-	builder.AddDomain(varA.Domain)
-	builder.AddDomain(varB.Domain)
+	csp.AddConstraint(largerThan{varA, varB})
 
-	builder.AddConstraint(largerThan{varA, varB})
-
-	model := builder.Build()
+	model := csp.GetModel()
 
 	var solutions [][2]int
 
@@ -34,16 +31,14 @@ func TestSolver_FindAll(t *testing.T) {
 }
 
 func TestSolver_FindFirstN(t *testing.T) {
-	varA := NewVariableFromValues("A", []int{1, 2, 3, 4})
-	varB := NewVariableFromValues("B", []int{1, 2, 3, 4})
+	csp := NewCSP()
 
-	builder := BuildModel()
-	builder.AddDomain(varA.Domain)
-	builder.AddDomain(varB.Domain)
+	varA := AddVariableFromValues(csp, "A", []int{1, 2, 3, 4})
+	varB := AddVariableFromValues(csp, "B", []int{1, 2, 3, 4})
 
-	builder.AddConstraint(largerThan{varA, varB})
+	csp.AddConstraint(largerThan{varA, varB})
 
-	model := builder.Build()
+	model := csp.GetModel()
 
 	var solutions [][2]int
 
@@ -63,23 +58,20 @@ func TestSolver_FindFirstN(t *testing.T) {
 
 func TestSolver(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		varA := NewVariableFromValues("A", []int{0, 1})
-		vara := NewVariableFromValues("a", []int{0, 1})
-		varb := NewVariableFromValues("b", []int{0, 1})
-		varB := NewVariableFromValues("B", []int{0, 1})
+		csp := NewCSP()
+		varA := AddVariableFromValues(csp, "A", []int{0, 1})
+		vara := AddVariableFromValues(csp, "a", []int{0, 1})
+		varb := AddVariableFromValues(csp, "b", []int{0, 1})
+		varB := AddVariableFromValues(csp, "B", []int{0, 1})
 
-		// vara and varb are hidden domains: they will not be picked/actively solved for.
+		// vara and varb are hidden domains: they will not be picked/actively solved for...? TODO: is this still true?
 		variables := []*Variable[int]{varA, vara, varb, varB}
 
-		builder := BuildModel()
-		builder.AddDomain(varA.Domain)
-		builder.AddDomain(varB.Domain)
+		csp.AddConstraint(equals{varA, vara})
+		csp.AddConstraint(equals{varB, varb})
+		csp.AddConstraint(constraint{vara, varb})
 
-		builder.AddConstraint(equals{varA, vara})
-		builder.AddConstraint(equals{varB, varb})
-		builder.AddConstraint(constraint{vara, varb})
-
-		model := builder.Build()
+		model := csp.GetModel()
 
 		solver := NewSolver(
 			WithSeed(int64(i)),
@@ -93,9 +85,9 @@ func TestSolver(t *testing.T) {
 
 		for _, v := range variables {
 			if !v.IsAssigned() {
-				t.Fatalf("Failed to fix %s [RUN=%d]", model.NameOf(v.Domain), i)
+				t.Fatalf("Failed to fix %s [RUN=%d]", v.Domain.name(), i)
 			} else if !(v.GetAssignedValue() == 1) {
-				t.Fatalf("Invalid value for %s [RUN=%d]", model.NameOf(v.Domain), i)
+				t.Fatalf("Invalid value for %s [RUN=%d]", v.Domain.name(), i)
 			}
 		}
 	}

@@ -47,7 +47,7 @@ func LogConstraints(model Model) SolverOption {
 				constraintName := reflect.TypeOf(boundConstraint.constraint)
 				var links []string
 				for _, domain := range boundConstraint.linkedDomains {
-					links = append(links, model.NameOf(domain))
+					links = append(links, domain.name())
 				}
 				log.Printf("%-4d %s\n     %s\n", i, constraintName, strings.Join(links, " "))
 			}

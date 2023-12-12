@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	size := 300
+	size := 32
 
 	solverR := propagator.NewSolver(
 		propagator.WithSeed(time.Now().UnixMicro()),
@@ -65,28 +65,27 @@ func SolvePixelMatrix(size int, solver propagator.Solver) [][]*Pixel {
 		pixels[i] = make([]*Pixel, size)
 	}
 
-	builder := propagator.BuildModel()
+	csp := propagator.NewCSP()
 
 	for y := 0; y < size; y++ {
 		for x := 0; x < size; x++ {
-			pixel := propagator.NewVariableFromValues(fmt.Sprintf("%d-%d", x, y), values)
+			pixel := propagator.AddVariableFromValues(csp, fmt.Sprintf("%d-%d", x, y), values)
 			pixels[x][y] = pixel
-			builder.AddDomain(pixel.Domain)
 		}
 	}
 
 	for y := 0; y < size; y++ {
 		for x := 0; x < size; x++ {
 			if (x + 1) < size {
-				builder.AddConstraint(Adjacency{pixels[x][y], pixels[x+1][y]})
+				csp.AddConstraint(Adjacency{pixels[x][y], pixels[x+1][y]})
 			}
 			if (y + 1) < size {
-				builder.AddConstraint(Adjacency{pixels[x][y], pixels[x][y+1]})
+				csp.AddConstraint(Adjacency{pixels[x][y], pixels[x][y+1]})
 			}
 		}
 	}
 
-	model := builder.Build()
+	model := csp.GetModel()
 
 	if !solver.Solve(model) {
 		panic("unable to solve")

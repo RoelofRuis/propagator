@@ -8,7 +8,7 @@ import (
 // domainPicker selects the next domain for which a value will be picked.
 type domainPicker func(m Model) *Domain
 
-func nextDomainByMinEntropy(m Model) *Domain {
+func nextDomainByMinEntropy(m Model) *Domain { // TODO: remove model, Domain now always has a reference!
 	minEntropy := math.Inf(+1)
 	var nextDomain *Domain
 	for _, domain := range m.domains {
@@ -16,7 +16,7 @@ func nextDomainByMinEntropy(m Model) *Domain {
 			continue
 		}
 
-		entropy := m.EntropyOf(domain)
+		entropy := domain.entropy()
 		if entropy < minEntropy {
 			nextDomain = domain
 			minEntropy = entropy
@@ -47,17 +47,17 @@ func nextDomainAtRandom(m Model) *Domain {
 }
 
 // indexPicker selects the next index from a given domain.
-type indexPicker func(m Model, d *Domain) int
+type indexPicker func(d *Domain) int
 
-func nextIndexByProbability(m Model, d *Domain) int {
-	cdfIdx := make([]int, 0, m.NumIndicesOf(d))
-	cdf := make([]float64, 0, m.NumIndicesOf(d))
+func nextIndexByProbability(d *Domain) int {
+	cdfIdx := make([]int, 0, d.numIndices())
+	cdf := make([]float64, 0, d.numIndices())
 
-	minPriority := d.minPriority
+	minPriority := d.minPriority()
 
 	probSum := 0.0
 	prev := 0.0
-	for i := 0; i < m.NumIndicesOf(d); i++ {
+	for i := 0; i < d.numIndices(); i++ {
 		idx := d.getIndex(i)
 		if idx.isBanned || idx.priority != minPriority {
 			continue
