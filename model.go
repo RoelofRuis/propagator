@@ -4,7 +4,7 @@ type DomainId = int
 
 // Model holds the tracked variables and the constraints between them.
 type Model struct {
-	domainConstraints map[DomainId][]constraintId // TODO: Replace index with DomainId?
+	domainConstraints map[DomainId][]constraintId
 	constraints       []boundConstraint
 	domains           []*Domain
 

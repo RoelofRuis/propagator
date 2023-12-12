@@ -9,7 +9,7 @@ import (
 // domainPicker selects the next domain for which a value will be picked.
 type domainPicker func(m Model) *Domain
 
-func nextDomainByMinEntropy(m Model) *Domain { // TODO: remove model, Domain now always has a reference!
+func nextDomainByMinEntropy(m Model) *Domain {
 	minEntropy := math.Inf(+1)
 	var nextDomain *Domain
 	for _, domain := range m.domains {

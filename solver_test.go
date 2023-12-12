@@ -85,9 +85,9 @@ func TestSolver(t *testing.T) {
 
 		for _, v := range variables {
 			if !v.IsAssigned() {
-				t.Fatalf("Failed to fix %s [RUN=%d]", v.Domain.name(), i)
+				t.Fatalf("Failed to fix %s [RUN=%d]", v.Domain.Name(), i)
 			} else if !(v.GetAssignedValue() == 1) {
-				t.Fatalf("Invalid value for %s [RUN=%d]", v.Domain.name(), i)
+				t.Fatalf("Invalid value for %s [RUN=%d]", v.Domain.Name(), i)
 			}
 		}
 	}

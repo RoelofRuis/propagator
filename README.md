@@ -12,21 +12,33 @@ Constraints define relations between these variables, allowing to iteratively re
 
 The first step of using this library is defining your problem in terms of variables and constraints. Once you have done that, proceed with the next sections.
 
-### 1 - Define your variables
+### 1 - Define a new Constraint Satisfaction Problem
 
-Define the variables for which a value need to be selected.
+Create a new CSP instance on which we will define our variables and constraints. This object serves as a builder for the model.
 
-In the instance of a sudoku puzzle, the variables are the cells with their respective states. The state values are of type `int` (the numbers 1 to 9)
+```go
+csp := propagator.NewCSP()
+```
+
+### 2 - Add your variables
+
+Define and add the variables for which a value need to be selected.
+
+In the instance of a sudoku puzzle, the variables are the cells with their respective states. The state values are of type `int` (the numbers 1 to 9).
+We could define the `Cell` type as such:
 ```go
 type Cell = propagator.Variable[int]
 ```
 
-We could instantiate the variable by hand or use one of the helper functions provided. If, for instance, the set of values is known and all have equal probability, we can use:
+Add the variables to the CSP using `AddVariable` or `AddVariableFromValues`, the latter is useful when we know in advance that all our values will have equal probability.
 ```go
-var variable *Cell := propagator.NewVariableFromValues[int]("name", []int{1,2,3,4,5,6,7,8,9})
+v0 *Cell := propagator.AddVariableFromValues[int](csp, "v0", []int{1,2,3,4,5,6,7,8,9})
+v1 *Cell := propagator.AddVariableFromValues[int](csp, "v1", []int{1,2,3,4,5,6,7,8,9})
 ```
 
-### 2 - Define your constraints
+The returned variable can then be used in your constraints.
+
+### 3 - Add your constraints
 
 Define the constraints that apply to these variables.
 
@@ -38,40 +50,34 @@ type House struct {
 	Cells []*Cell
 }
 
-func (h House) Scope() []propagator.Domain {
-	return propagator.DomainsOf(h.Cells)
+func (h House) Scope() []DomainId {
+	return propagator.IdsOf(h.Cells)
 }
 
 func (h House) Propagate(mutator *propagator.Mutator) {
 	/* ... logic omitted ... */
 }
 ```
-`Scope` should return a list of domains that this constraint applies to. Because each `Variable` implements `Domain`, these can be easily extracted.
+`Scope` should return a list of `DomainId` that this constraint applies to. Because each `Variable` is a `Domain`, these can be easily extracted.
 
 The implementation of `Propagate` holds the most important logic. By passing different mutations to the mutator, changes to the domain are defined.
 Often, optimizing this implementation can speed up the solution process significantly.
 
-### 3 - Build a model
-
-Build a model using your variables and constraints.
+Add instances of your constraints to the CSP by calling `AddConstraint`.
 ```go
-builder := propagator.BuildModel()
+house := House{Cells: []*Cell{v0, v1}}
 
-v00 := propagator.NewVariableFromValues("1-1", []int{1,2,3,4,5,6,7,8,9})
-builder.AddDomain(v00)
-
-v01 := propagator.NewVariableFromValues("1-1", []int{1,2,3,4,5,6,7,8,9})
-builder.AddDomain(v01)
-// other variables
-
-house1 := House{Cells: []*Cell{v00, v01}}
-builder.AddConstraint(house1)
-// other constraints
-
-model := builder.Build()
+csp.AddConstraint(house)
 ```
 
-### 4 - Solve the model
+### 4 - Build the model
+
+Build the model by calling `GetModel` on the CSP.
+```go
+model := csp.GetModel()
+```
+
+### 5 - Solve the model
 
 Solve the model using a solver. Additional `SolverOptions` can be passed when creating a new solver.
 ```go
@@ -82,7 +88,8 @@ solved := solver.Solve(model)
 if (!solved) {
     fmt.Printf("no solution!")
 } else {
-    fmt.Printf("%s", variable.GetFixedValue())
+    fmt.Printf("%s", v0.GetFixedValue())
+    fmt.Printf("%s", v1.GetFixedValue())
 }
 ```
 

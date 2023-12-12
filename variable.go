@@ -10,9 +10,10 @@ type Variable[T comparable] struct {
 
 func (v *Variable[T]) AvailableValues() []T {
 	if v.version() != v.cachedValueVersion {
-		v.cachedValues = v.cachedValues[:0]
-		for _, idx := range v.availableIndices() {
-			v.cachedValues = append(v.cachedValues, v.values[idx])
+		availableIndices := v.availableIndices()
+		v.cachedValues = v.cachedValues[:len(availableIndices)]
+		for i, idx := range availableIndices {
+			v.cachedValues[i] = v.values[idx]
 		}
 	}
 	return v.cachedValues
