@@ -17,6 +17,7 @@ func TestSolver_FindAll(t *testing.T) {
 	var solutions [][2]int
 
 	solver := NewSolver(
+		WithSeed(0),
 		FindAllSolutions(),
 		On(SolutionFound, func() {
 			solutions = append(solutions, [2]int{varA.GetAssignedValue(), varB.GetAssignedValue()})
@@ -43,6 +44,7 @@ func TestSolver_FindFirstN(t *testing.T) {
 	var solutions [][2]int
 
 	solver := NewSolver(
+		WithSeed(0),
 		FindNSolutions(3),
 		On(SolutionFound, func() {
 			solutions = append(solutions, [2]int{varA.GetAssignedValue(), varB.GetAssignedValue()})

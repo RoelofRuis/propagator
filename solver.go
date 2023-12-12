@@ -1,12 +1,13 @@
 package propagator
 
 import (
+	"hash/maphash"
 	"math/rand"
 )
 
 // Solver is responsible for solving a given model.
 type Solver struct {
-	rndSeed        int64
+	rnd            *rand.Rand
 	domainPicker   domainPicker
 	indexPicker    indexPicker
 	maxSolutions   int
@@ -31,7 +32,7 @@ const (
 
 func NewSolver(options ...SolverOption) Solver {
 	solver := Solver{
-		rndSeed:        0,
+		rnd:            rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64()))),
 		domainPicker:   nextDomainByMinEntropy,
 		indexPicker:    &ProbabilisticIndexPicker{},
 		solutionsFound: 0,
@@ -46,8 +47,6 @@ func NewSolver(options ...SolverOption) Solver {
 }
 
 func (s *Solver) Solve(model Model) bool {
-	rand.Seed(s.rndSeed)
-
 	s.events.Publish(Start)
 
 	s.indexPicker.init(model)
@@ -79,16 +78,16 @@ func (s *Solver) selectNext(level int, model Model) bool {
 		}
 	}
 
-	domain := s.domainPicker(model)
+	domain := s.domainPicker(model, s.rnd)
 
 	if domain == nil {
 		return false
 	}
 
-	selectMutations := NewMutator()
+	selectMutations := newMutator()
 
 	for {
-		selectedIndex := s.indexPicker.nextIndex(domain)
+		selectedIndex := s.indexPicker.nextIndex(domain, s.rnd)
 		if selectedIndex == -1 {
 			selectMutations.revertAll()
 			return false
@@ -115,7 +114,7 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 	for _, domain := range domains {
 		s.queue.Enqueue(domain)
 	}
-	mutator := NewMutator()
+	mutator := newMutator()
 
 	for {
 		if s.queue.IsEmpty() {

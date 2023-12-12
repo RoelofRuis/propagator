@@ -7,9 +7,9 @@ import (
 )
 
 // domainPicker selects the next domain for which a value will be picked.
-type domainPicker func(m Model) *Domain
+type domainPicker func(m Model, rnd *rand.Rand) *Domain
 
-func nextDomainByMinEntropy(m Model) *Domain {
+func nextDomainByMinEntropy(m Model, rnd *rand.Rand) *Domain {
 	minEntropy := math.Inf(+1)
 	var nextDomain *Domain
 	for _, domain := range m.domains {
@@ -27,7 +27,7 @@ func nextDomainByMinEntropy(m Model) *Domain {
 	return nextDomain
 }
 
-func nextDomainByIndex(m Model) *Domain {
+func nextDomainByIndex(m Model, rnd *rand.Rand) *Domain {
 	for _, domain := range m.domains {
 		if domain.IsUnassigned() {
 			return domain
@@ -37,20 +37,20 @@ func nextDomainByIndex(m Model) *Domain {
 	return nil
 }
 
-func nextDomainAtRandom(m Model) *Domain {
+func nextDomainAtRandom(m Model, rnd *rand.Rand) *Domain {
 	var validDomains []*Domain
 	for _, domain := range m.domains {
 		if domain.IsUnassigned() {
 			validDomains = append(validDomains, domain)
 		}
 	}
-	return validDomains[rand.Intn(len(validDomains))]
+	return validDomains[rnd.Intn(len(validDomains))]
 }
 
 // indexPicker selects the next index from a given domain.
 type indexPicker interface {
 	init(m Model)
-	nextIndex(d *Domain) int
+	nextIndex(d *Domain, rnd *rand.Rand) int
 }
 
 type ProbabilisticIndexPicker struct {
@@ -66,7 +66,7 @@ func (p *ProbabilisticIndexPicker) init(m Model) {
 	p.cdf = make([]float64, 0, maxIndices)
 }
 
-func (p *ProbabilisticIndexPicker) nextIndex(d *Domain) int {
+func (p *ProbabilisticIndexPicker) nextIndex(d *Domain, rnd *rand.Rand) int {
 	p.cdfIdx = p.cdfIdx[:0]
 	p.cdf = p.cdf[:0]
 
@@ -91,7 +91,7 @@ func (p *ProbabilisticIndexPicker) nextIndex(d *Domain) int {
 		return -1
 	}
 
-	r := rand.Float64() * probSum
+	r := rnd.Float64() * probSum
 	idx := 0
 	for r > p.cdf[idx] {
 		idx++

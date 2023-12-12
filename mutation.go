@@ -8,20 +8,14 @@ type Mutator struct {
 	head               int
 }
 
-// NewMutator Creates a new Mutator.
-func NewMutator() *Mutator {
+// newMutator Creates a new Mutator.
+func newMutator() *Mutator {
 	return &Mutator{
 		activeConstraintId: -1,
 		mutations:          make([]Mutation, 0, 10),
 		prevHead:           0,
 		head:               0,
 	}
-}
-
-// setActiveConstraintId is called internally by the solver to notify the mutator of the constraint for which
-// mutations are currently processed.
-func (m *Mutator) setActiveConstraintId(c constraintId) {
-	m.activeConstraintId = c
 }
 
 // Add adds mutations to be applied to the mutator without applying them.
@@ -33,6 +27,12 @@ func (m *Mutator) Add(updates ...Mutation) {
 		update.constraintId = m.activeConstraintId
 		m.mutations = append(m.mutations, update)
 	}
+}
+
+// setActiveConstraintId is called internally by the solver to notify the mutator of the constraint for which
+// mutations are currently processed.
+func (m *Mutator) setActiveConstraintId(c constraintId) {
+	m.activeConstraintId = c
 }
 
 func (m *Mutator) apply() {

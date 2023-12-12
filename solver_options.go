@@ -2,6 +2,7 @@ package propagator
 
 import (
 	"log"
+	"math/rand"
 	"reflect"
 	"strings"
 )
@@ -10,7 +11,7 @@ type SolverOption func(solver *Solver)
 
 func WithSeed(int int64) SolverOption {
 	return func(s *Solver) {
-		s.rndSeed = int
+		s.rnd = rand.New(rand.NewSource(int))
 	}
 }
 
@@ -23,7 +24,7 @@ func On(event SolverEvent, f func()) SolverOption {
 func LogInfo() SolverOption {
 	return func(s *Solver) {
 		round := 0
-		s.events.Subscribe(Start, func() { log.Printf("[SOLVER] Starting\nRND Seed [%d]\n", s.rndSeed) })
+		s.events.Subscribe(Start, func() { log.Printf("[SOLVER] Starting\nRND Seed [%d]\n", s.rnd.Int()) })
 		s.events.Subscribe(Failure, func() { log.Print("[SOLVER] Failed finding solution\n") })
 		s.events.Subscribe(SolutionFound, func() { log.Print("[SOLVER] Solution found\n") })
 		s.events.Subscribe(Select, func() {
