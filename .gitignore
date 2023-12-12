@@ -1,6 +1,1 @@
 .idea/
-
-# profiling
-*.prof
-profile*.png
-*.test

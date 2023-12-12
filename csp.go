@@ -28,8 +28,11 @@ func NewCSP() *CSP {
 	}
 }
 
-func AddVariableFromValues[T comparable](csp *CSP, name string, values []T) *Variable[T] {
-	return AddVariable[T](csp, name, AsDomainValues(values...))
+// DomainValue represents the initialization data for a domain value.
+type DomainValue[T comparable] struct {
+	Priority    int
+	Probability float64
+	Value       T
 }
 
 func AddVariable[T comparable](csp *CSP, name string, initialValues []DomainValue[T]) *Variable[T] {
@@ -48,9 +51,10 @@ func AddVariable[T comparable](csp *CSP, name string, initialValues []DomainValu
 	}
 
 	variable := &Variable[T]{
-		Domain:          domain,
-		values:          values,
-		availableValues: make([]T, 0, len(initialValues)),
+		Domain:             domain,
+		values:             values,
+		cachedValueVersion: 0,
+		cachedValues:       make([]T, 0, len(initialValues)),
 	}
 
 	csp.nextDomainId++
@@ -60,6 +64,14 @@ func AddVariable[T comparable](csp *CSP, name string, initialValues []DomainValu
 	csp.domainAvailableIndices = append(csp.domainAvailableIndices, make([]int, 0, len(indices)))
 
 	return variable
+}
+
+func AddVariableFromValues[T comparable](csp *CSP, name string, values []T) *Variable[T] {
+	domainValues := make([]DomainValue[T], len(values))
+	for i, value := range values {
+		domainValues[i] = DomainValue[T]{0, 1.0, value}
+	}
+	return AddVariable[T](csp, name, domainValues)
 }
 
 // AddConstraint adds a constraint to the model.

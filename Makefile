@@ -1,8 +1,8 @@
 benchmark:
-	go test -bench=SolvePixelMatrix -cpuprofile=cpu.prof -memprofile=mem.prof -benchtime=60s ./examples/image
+	go test -bench=SolvePixelMatrix -cpuprofile=profile/cpu.prof -memprofile=profile/mem.prof -benchtime=60s ./examples/image
 
 profile-cpu:
-	go tool pprof cpu.prof
+	go tool pprof profile/cpu.prof
 
 profile-mem:
-	go tool pprof mem.prof
+	go tool pprof profile/mem.prof

@@ -82,6 +82,6 @@ func SelectDomainsAtRandom() SolverOption {
 // SelectDomainsBy sets the domain picker function.
 func SelectDomainsBy(picker domainPicker) SolverOption {
 	return func(s *Solver) {
-		s.nextDomain = picker
+		s.domainPicker = picker
 	}
 }

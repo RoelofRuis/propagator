@@ -7,8 +7,8 @@ import (
 // Solver is responsible for solving a given model.
 type Solver struct {
 	rndSeed        int64
-	nextDomain     domainPicker
-	nextIndex      indexPicker
+	domainPicker   domainPicker
+	indexPicker    indexPicker
 	maxSolutions   int
 	solutionsFound int
 
@@ -32,8 +32,8 @@ const (
 func NewSolver(options ...SolverOption) Solver {
 	solver := Solver{
 		rndSeed:        0,
-		nextDomain:     nextDomainByMinEntropy,
-		nextIndex:      nextIndexByProbability,
+		domainPicker:   nextDomainByMinEntropy,
+		indexPicker:    &ProbabilisticIndexPicker{},
 		solutionsFound: 0,
 		maxSolutions:   1,
 		events:         NewPubsub(),
@@ -49,6 +49,8 @@ func (s *Solver) Solve(model Model) bool {
 	rand.Seed(s.rndSeed)
 
 	s.events.Publish(Start)
+
+	s.indexPicker.init(model)
 
 	mutations, success := s.propagate(model, model.domains...)
 	if success {
@@ -77,7 +79,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 		}
 	}
 
-	domain := s.nextDomain(model)
+	domain := s.domainPicker(model)
 
 	if domain == nil {
 		return false
@@ -86,7 +88,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 	selectMutations := NewMutator()
 
 	for {
-		selectedIndex := s.nextIndex(domain)
+		selectedIndex := s.indexPicker.nextIndex(domain)
 		if selectedIndex == -1 {
 			selectMutations.revertAll()
 			return false

@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	size := 32
+	size := 128
 
 	solverR := propagator.NewSolver(
 		propagator.WithSeed(time.Now().UnixMicro()),
@@ -108,7 +108,7 @@ func (a Adjacency) Scope() []propagator.DomainId {
 func (a Adjacency) Propagate(m *propagator.Mutator) {
 	min1 := math.MaxInt
 	max1 := math.MinInt
-	for _, s := range a.P1.AllowedValues() {
+	for _, s := range a.P1.AvailableValues() {
 		if int(s) < min1 {
 			min1 = int(s)
 		}
@@ -123,7 +123,7 @@ func (a Adjacency) Propagate(m *propagator.Mutator) {
 
 	min2 := math.MaxInt
 	max2 := math.MinInt
-	for _, s := range a.P2.AllowedValues() {
+	for _, s := range a.P2.AvailableValues() {
 		if int(s) < min2 {
 			min2 = int(s)
 		}

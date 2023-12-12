@@ -3,6 +3,7 @@ package propagator
 import (
 	"math"
 	"math/rand"
+	"slices"
 )
 
 // domainPicker selects the next domain for which a value will be picked.
@@ -47,11 +48,27 @@ func nextDomainAtRandom(m Model) *Domain {
 }
 
 // indexPicker selects the next index from a given domain.
-type indexPicker func(d *Domain) int
+type indexPicker interface {
+	init(m Model)
+	nextIndex(d *Domain) int
+}
 
-func nextIndexByProbability(d *Domain) int {
-	cdfIdx := make([]int, 0, d.numIndices())
-	cdf := make([]float64, 0, d.numIndices())
+type ProbabilisticIndexPicker struct {
+	// cumulative distribution function index
+	cdfIdx []int
+	// cumulative distribution function
+	cdf []float64
+}
+
+func (p *ProbabilisticIndexPicker) init(m Model) {
+	maxIndices := slices.Max(m.domainNumIndices)
+	p.cdfIdx = make([]int, 0, maxIndices)
+	p.cdf = make([]float64, 0, maxIndices)
+}
+
+func (p *ProbabilisticIndexPicker) nextIndex(d *Domain) int {
+	p.cdfIdx = p.cdfIdx[:0]
+	p.cdf = p.cdf[:0]
 
 	minPriority := d.minPriority()
 
@@ -63,22 +80,22 @@ func nextIndexByProbability(d *Domain) int {
 			continue
 		}
 
-		cdfIdx = append(cdfIdx, i)
+		p.cdfIdx = append(p.cdfIdx, i)
 		nextProb := prev + idx.probability
-		cdf = append(cdf, nextProb)
+		p.cdf = append(p.cdf, nextProb)
 		prev = nextProb
 		probSum += idx.probability
 	}
 
-	if len(cdf) == 0 {
+	if len(p.cdf) == 0 {
 		return -1
 	}
 
 	r := rand.Float64() * probSum
 	idx := 0
-	for r > cdf[idx] {
+	for r > p.cdf[idx] {
 		idx++
 	}
 
-	return cdfIdx[idx]
+	return p.cdfIdx[idx]
 }

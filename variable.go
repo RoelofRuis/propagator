@@ -2,24 +2,28 @@ package propagator
 
 type Variable[T comparable] struct {
 	Domain
-	values          []T
-	availableValues []T
+	values []T
+
+	cachedValueVersion int
+	cachedValues       []T
 }
 
-func (v *Variable[T]) AllowedValues() []T {
-	v.availableValues = v.availableValues[:0]
-	for _, idx := range v.availableIndices() {
-		v.availableValues = append(v.availableValues, v.values[idx])
+func (v *Variable[T]) AvailableValues() []T {
+	if v.version() != v.cachedValueVersion {
+		v.cachedValues = v.cachedValues[:0]
+		for _, idx := range v.availableIndices() {
+			v.cachedValues = append(v.cachedValues, v.values[idx])
+		}
 	}
-	return v.availableValues
+	return v.cachedValues
 }
 
-func (v *Variable[T]) IsValueAllowed(value T) bool {
+func (v *Variable[T]) IsValueAvailable(value T) bool {
 	return v.Exists(func(a T) bool { return a == value })
 }
 
 func (v *Variable[T]) Exists(check func(a T) bool) bool {
-	for _, availableValue := range v.AllowedValues() {
+	for _, availableValue := range v.AvailableValues() {
 		if check(availableValue) {
 			return true
 		}
@@ -28,7 +32,7 @@ func (v *Variable[T]) Exists(check func(a T) bool) bool {
 }
 
 func (v *Variable[T]) ForEach(check func(a T) bool) bool {
-	for _, availableValue := range v.AllowedValues() {
+	for _, availableValue := range v.AvailableValues() {
 		if !check(availableValue) {
 			return false
 		}
@@ -99,22 +103,6 @@ func (v *Variable[T]) ExcludeByValue(values ...T) Mutation {
 		}
 		return false
 	})
-}
-
-// AsDomainValues instantiates default domain values from a list of values.
-func AsDomainValues[T comparable](values ...T) []DomainValue[T] {
-	domainValues := make([]DomainValue[T], len(values))
-	for i, value := range values {
-		domainValues[i] = DomainValue[T]{0, 1.0, value}
-	}
-	return domainValues
-}
-
-// DomainValue represents the initialization data for a domain value.
-type DomainValue[T comparable] struct {
-	Priority    int
-	Probability float64
-	Value       T
 }
 
 func IdsOf[T comparable](vars ...*Variable[T]) []DomainId {

@@ -105,22 +105,22 @@ func (e largerThan) Scope() []DomainId {
 func (e largerThan) Propagate(m *Mutator) {
 	maxA := math.MinInt
 	minB := math.MaxInt
-	for _, valA := range e.a.AllowedValues() {
+	for _, valA := range e.a.AvailableValues() {
 		if valA > maxA {
 			maxA = valA
 		}
 	}
-	for _, valB := range e.b.AllowedValues() {
+	for _, valB := range e.b.AvailableValues() {
 		if valB < minB {
 			minB = valB
 		}
 	}
-	for _, stateA := range e.a.AllowedValues() {
+	for _, stateA := range e.a.AvailableValues() {
 		if stateA <= minB {
 			m.Add(e.a.ExcludeByValue(stateA))
 		}
 	}
-	for _, stateB := range e.b.AllowedValues() {
+	for _, stateB := range e.b.AvailableValues() {
 		if stateB >= maxA {
 			m.Add(e.b.ExcludeByValue(stateB))
 		}
