@@ -5,6 +5,7 @@ import (
 )
 
 type Domain interface {
+	// deprecated
 	numIndices() int
 	getIndex(i int) *index
 	setIndex(i int, idx *index)

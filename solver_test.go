@@ -10,8 +10,8 @@ func TestSolver_FindAll(t *testing.T) {
 	varB := NewVariableFromValues("B", []int{1, 2, 3})
 
 	builder := BuildModel()
-	builder.AddDomain(varA.Domain)
-	builder.AddDomain(varB.Domain)
+	builder.AddDomain(varA)
+	builder.AddDomain(varB)
 
 	builder.AddConstraint(largerThan{varA, varB})
 
@@ -38,8 +38,8 @@ func TestSolver_FindFirstN(t *testing.T) {
 	varB := NewVariableFromValues("B", []int{1, 2, 3, 4})
 
 	builder := BuildModel()
-	builder.AddDomain(varA.Domain)
-	builder.AddDomain(varB.Domain)
+	builder.AddDomain(varA)
+	builder.AddDomain(varB)
 
 	builder.AddConstraint(largerThan{varA, varB})
 
@@ -72,8 +72,8 @@ func TestSolver(t *testing.T) {
 		variables := []*Variable[int]{varA, vara, varb, varB}
 
 		builder := BuildModel()
-		builder.AddDomain(varA.Domain)
-		builder.AddDomain(varB.Domain)
+		builder.AddDomain(varA)
+		builder.AddDomain(varB)
 
 		builder.AddConstraint(equals{varA, vara})
 		builder.AddConstraint(equals{varB, varb})
@@ -93,9 +93,9 @@ func TestSolver(t *testing.T) {
 
 		for _, v := range variables {
 			if !v.IsAssigned() {
-				t.Fatalf("Failed to fix %s [RUN=%d]", v.Name, i)
+				t.Fatalf("Failed to fix %s [RUN=%d]", v.GetName(), i)
 			} else if !(v.GetAssignedValue() == 1) {
-				t.Fatalf("Invalid value for %s [RUN=%d]", v.Name, i)
+				t.Fatalf("Invalid value for %s [RUN=%d]", v.GetName(), i)
 			}
 		}
 	}
@@ -106,8 +106,8 @@ type largerThan struct {
 	b *Variable[int]
 }
 
-func (e largerThan) Scope() []*Domain {
-	return []*Domain{e.a.Domain, e.b.Domain}
+func (e largerThan) Scope() []Domain {
+	return DomainsOf(e.a, e.b)
 }
 
 func (e largerThan) Propagate(m *Mutator) {
@@ -140,8 +140,8 @@ type equals struct {
 	b *Variable[int]
 }
 
-func (e equals) Scope() []*Domain {
-	return []*Domain{e.a.Domain, e.b.Domain}
+func (e equals) Scope() []Domain {
+	return DomainsOf(e.a, e.b)
 }
 
 func (e equals) Propagate(m *Mutator) {
@@ -158,8 +158,8 @@ type constraint struct {
 	b *Variable[int]
 }
 
-func (c constraint) Scope() []*Domain {
-	return []*Domain{c.a.Domain, c.b.Domain}
+func (c constraint) Scope() []Domain {
+	return DomainsOf(c.a, c.b)
 }
 
 func (c constraint) Propagate(m *Mutator) {

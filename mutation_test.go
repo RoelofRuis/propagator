@@ -6,12 +6,12 @@ import (
 )
 
 func TestMutation(t *testing.T) {
-	indices := []*index{
-		indexFactorySingleton.create(1.0, 0),
-		indexFactorySingleton.create(0.5, 0),
+	indices := []DomainValue[int]{
+		{0, 1.0, 1},
+		{0, 0.5, 2},
 	}
 
-	domain := NewDomain("test", indices)
+	domain := NewVariable("test", indices)
 
 	mutator := NewMutator()
 

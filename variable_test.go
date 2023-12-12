@@ -5,8 +5,15 @@ import (
 	"testing"
 )
 
-func TestDomainStates_Empty(t *testing.T) {
-	domain := NewDomain("test", []*index{})
+func TestDomainGetName(t *testing.T) {
+	domain := NewVariable[int]("test", nil)
+	if domain.GetName() != "test" {
+		t.Fatalf("invalid name returned")
+	}
+}
+
+func TestDomainEmpty(t *testing.T) {
+	domain := NewVariable[int]("test", nil)
 	if !domain.IsInContradiction() {
 		t.Fatalf("empty domain should be in contradiction")
 	}
@@ -18,8 +25,8 @@ func TestDomainStates_Empty(t *testing.T) {
 	}
 }
 
-func TestDomainStates_Fixed(t *testing.T) {
-	domain := NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0)})
+func TestDomainAssigned(t *testing.T) {
+	domain := NewVariable[int]("test", []DomainValue[int]{{0, 1, 1}})
 	if domain.IsInContradiction() {
 		t.Fatalf("fixed domain should not be in contradiction")
 	}
@@ -31,8 +38,8 @@ func TestDomainStates_Fixed(t *testing.T) {
 	}
 }
 
-func TestDomainStates_Free(t *testing.T) {
-	domain := NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 0)})
+func TestDomainUnassigned(t *testing.T) {
+	domain := NewVariable("test", []DomainValue[int]{{0, 1, 1}, {0, 1, 2}})
 	if domain.IsInContradiction() {
 		t.Fatalf("free domain should not be in contradiction")
 	}
@@ -44,8 +51,8 @@ func TestDomainStates_Free(t *testing.T) {
 	}
 }
 
-func TestDomainStates_Contradict(t *testing.T) {
-	domain := NewDomain("test", []*index{indexFactorySingleton.create(0.0, 0), indexFactorySingleton.create(0.0, 0)})
+func TestDomainContradicts(t *testing.T) {
+	domain := NewVariable("test", []DomainValue[int]{{0, 0, 1}})
 	if !domain.IsInContradiction() {
 		t.Fatalf("contradicted domain should be in contradiction")
 	}
@@ -59,60 +66,60 @@ func TestDomainStates_Contradict(t *testing.T) {
 
 func TestEntropyAndPriority(t *testing.T) {
 	type test struct {
-		domain              *Domain
+		variable            *Variable[int]
 		expectedEntropy     float64
 		expectedMinPriority int
 	}
 
 	tests := []test{
 		{
-			NewDomain("test", []*index{}),
+			NewVariable("test", []DomainValue[int]{}),
 			math.Inf(-1),
 			math.MaxInt,
 		},
 		{
-			NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0)}),
+			NewVariable("test", []DomainValue[int]{{0, 1.0, 1}}),
 			0.0,
 			0,
 		},
 		{
-			NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 0)}),
+			NewVariable("test", []DomainValue[int]{{0, 1.0, 1}, {0, 1.0, 2}}),
 			1.0,
 			0,
 		},
 		{
-			NewDomain("test", []*index{indexFactorySingleton.create(1.0, 1), indexFactorySingleton.create(1.0, 1)}),
+			NewVariable("test", []DomainValue[int]{{1, 1.0, 1}, {1, 1.0, 2}}),
 			1.0,
 			1,
 		},
 		{
-			NewDomain("test", []*index{indexFactorySingleton.create(4.0, 0), indexFactorySingleton.create(1.0, 0)}),
+			NewVariable("test", []DomainValue[int]{{0, 4.0, 1}, {0, 1.0, 2}}),
 			0.7219280948,
 			0,
 		},
 		{
-			NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 0)}),
+			NewVariable("test", []DomainValue[int]{{0, 1.0, 1}, {0, 1.0, 2}, {0, 1.0, 3}, {0, 1.0, 4}}),
 			2.0,
 			0,
 		},
 		{
-			NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 1)}),
+			NewVariable("test", []DomainValue[int]{{0, 1.0, 1}, {1, 1.0, 2}}),
 			0.0,
 			0,
 		},
 		{
-			NewDomain("test", []*index{indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 0), indexFactorySingleton.create(1.0, 1)}),
+			NewVariable("test", []DomainValue[int]{{0, 1.0, 1}, {0, 1.0, 2}, {1, 1.0, 3}}),
 			1.0,
 			0,
 		},
 	}
 
 	for _, tc := range tests {
-		gotEntropy := tc.domain.Entropy()
+		gotEntropy := tc.variable.Entropy()
 		if math.Abs(gotEntropy-tc.expectedEntropy) > 1e-10 {
 			t.Fatalf("ENTROPY expected %v, got: %v", tc.expectedEntropy, gotEntropy)
 		}
-		gotPriority := tc.domain.minPriority
+		gotPriority := tc.variable.minPriority
 		if gotPriority != tc.expectedMinPriority {
 			t.Fatalf("MIN PRIORITY expected %v, got %v", tc.expectedMinPriority, gotPriority)
 		}
