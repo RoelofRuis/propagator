@@ -124,20 +124,20 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 		selectedDomain := s.queue.Dequeue()
 		targetDomains := Set[*Domain]{}
 
-		for _, constraintId := range model.domainConstraints[selectedDomain] {
+		for _, constraintId := range model.domainConstraints[selectedDomain.id] {
 			constraint := model.constraints[constraintId]
 
 			mutator.setActiveConstraintId(constraintId)
 			constraint.constraint.Propagate(mutator)
 
-			for _, targetDomain := range constraint.linkedDomains {
-				targetDomains = targetDomains.Insert(targetDomain)
+			for _, targetDomainId := range constraint.linkedDomains {
+				targetDomains = targetDomains.Insert(model.domains[targetDomainId])
 			}
 		}
 
-		versions := make(map[*Domain]int)
+		versions := make(map[DomainId]int)
 		for targetDomain := range targetDomains {
-			versions[targetDomain] = targetDomain.version()
+			versions[targetDomain.id] = targetDomain.version()
 		}
 
 		mutator.apply()
@@ -148,7 +148,7 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 				return mutator, false
 			}
 
-			if targetDomain.version() > versions[targetDomain] {
+			if targetDomain.version() > versions[targetDomain.id] {
 				s.queue.Enqueue(targetDomain)
 			}
 		}

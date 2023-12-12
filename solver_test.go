@@ -98,8 +98,8 @@ type largerThan struct {
 	b *Variable[int]
 }
 
-func (e largerThan) Scope() []*Domain {
-	return DomainsOf(e.a, e.b)
+func (e largerThan) Scope() []DomainId {
+	return IdsOf(e.a, e.b)
 }
 
 func (e largerThan) Propagate(m *Mutator) {
@@ -132,8 +132,8 @@ type equals struct {
 	b *Variable[int]
 }
 
-func (e equals) Scope() []*Domain {
-	return DomainsOf(e.a, e.b)
+func (e equals) Scope() []DomainId {
+	return IdsOf(e.a, e.b)
 }
 
 func (e equals) Propagate(m *Mutator) {
@@ -150,8 +150,8 @@ type constraint struct {
 	b *Variable[int]
 }
 
-func (c constraint) Scope() []*Domain {
-	return DomainsOf(c.a, c.b)
+func (c constraint) Scope() []DomainId {
+	return IdsOf(c.a, c.b)
 }
 
 func (c constraint) Propagate(m *Mutator) {

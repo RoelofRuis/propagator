@@ -4,7 +4,7 @@ type DomainId = int
 
 // Model holds the tracked variables and the constraints between them.
 type Model struct {
-	domainConstraints map[*Domain][]constraintId // TODO: Replace index with DomainId?
+	domainConstraints map[DomainId][]constraintId // TODO: Replace index with DomainId?
 	constraints       []boundConstraint
 	domains           []*Domain
 
@@ -21,7 +21,7 @@ type Model struct {
 // boundConstraint defines the link between a Constraint and its related domains.
 type boundConstraint struct {
 	constraint    Constraint
-	linkedDomains []*Domain
+	linkedDomains []DomainId
 }
 
 // IsSolved returns whether this model currently is in a solved state.

@@ -7,6 +7,10 @@ type Variable[T comparable] struct {
 }
 
 func (v *Variable[T]) AllowedValues() []T {
+	v.availableValues = v.availableValues[:0]
+	for _, idx := range v.availableIndices() {
+		v.availableValues = append(v.availableValues, v.values[idx])
+	}
 	return v.availableValues
 }
 
@@ -15,7 +19,7 @@ func (v *Variable[T]) IsValueAllowed(value T) bool {
 }
 
 func (v *Variable[T]) Exists(check func(a T) bool) bool {
-	for _, availableValue := range v.availableValues {
+	for _, availableValue := range v.AllowedValues() {
 		if check(availableValue) {
 			return true
 		}
@@ -24,7 +28,7 @@ func (v *Variable[T]) Exists(check func(a T) bool) bool {
 }
 
 func (v *Variable[T]) ForEach(check func(a T) bool) bool {
-	for _, availableValue := range v.availableValues {
+	for _, availableValue := range v.AllowedValues() {
 		if !check(availableValue) {
 			return false
 		}
@@ -113,10 +117,10 @@ type DomainValue[T comparable] struct {
 	Value       T
 }
 
-func DomainsOf[T comparable](vars ...*Variable[T]) []*Domain {
-	domains := make([]*Domain, 0, len(vars))
+func IdsOf[T comparable](vars ...*Variable[T]) []DomainId {
+	domainIds := make([]DomainId, 0, len(vars))
 	for _, v := range vars {
-		domains = append(domains, &v.Domain)
+		domainIds = append(domainIds, v.Domain.id)
 	}
-	return domains
+	return domainIds
 }

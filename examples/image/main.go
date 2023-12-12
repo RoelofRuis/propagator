@@ -101,8 +101,8 @@ type Adjacency struct {
 	P2 *Pixel
 }
 
-func (a Adjacency) Scope() []*propagator.Domain {
-	return propagator.DomainsOf(a.P1, a.P2)
+func (a Adjacency) Scope() []propagator.DomainId {
+	return propagator.IdsOf(a.P1, a.P2)
 }
 
 func (a Adjacency) Propagate(m *propagator.Mutator) {

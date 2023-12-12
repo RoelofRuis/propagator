@@ -9,8 +9,8 @@ type House struct {
 	Cells []*Cell
 }
 
-func (h House) Scope() []*propagator.Domain {
-	return propagator.DomainsOf(h.Cells...)
+func (h House) Scope() []propagator.DomainId {
+	return propagator.IdsOf(h.Cells...)
 }
 
 func (h House) Propagate(mutator *propagator.Mutator) {
@@ -32,8 +32,8 @@ type FixedCage struct {
 	Value int
 }
 
-func (c FixedCage) Scope() []*propagator.Domain {
-	return propagator.DomainsOf(c.Cell)
+func (c FixedCage) Scope() []propagator.DomainId {
+	return propagator.IdsOf(c.Cell)
 }
 
 func (c FixedCage) Propagate(mutator *propagator.Mutator) {
@@ -45,8 +45,8 @@ type SumCage struct {
 	Value int
 }
 
-func (c SumCage) Scope() []*propagator.Domain {
-	return propagator.DomainsOf(c.Cells...)
+func (c SumCage) Scope() []propagator.DomainId {
+	return propagator.IdsOf(c.Cells...)
 }
 
 func (c SumCage) Propagate(mutator *propagator.Mutator) {
@@ -76,8 +76,8 @@ type ProdCage struct {
 	Value int
 }
 
-func (c ProdCage) Scope() []*propagator.Domain {
-	return propagator.DomainsOf(c.Cells...)
+func (c ProdCage) Scope() []propagator.DomainId {
+	return propagator.IdsOf(c.Cells...)
 }
 
 func (c ProdCage) Propagate(mutator *propagator.Mutator) {
@@ -101,12 +101,12 @@ type SubCage struct {
 	Value int
 }
 
-func (c SubCage) Scope() []*propagator.Domain {
+func (c SubCage) Scope() []propagator.DomainId {
 	if len(c.Cells) > 3 {
 		// FIXME: this assumes only 2 cells take part
 		panic("subtractive cages with more than two cells not supported")
 	}
-	return propagator.DomainsOf(c.Cells...)
+	return propagator.IdsOf(c.Cells...)
 }
 
 func (c SubCage) Propagate(mutator *propagator.Mutator) {
@@ -153,12 +153,12 @@ type DivCage struct {
 	Value int
 }
 
-func (c DivCage) Scope() []*propagator.Domain {
+func (c DivCage) Scope() []propagator.DomainId {
 	if len(c.Cells) > 2 {
 		// FIXME: this assumes only 2 cells take part
 		panic("division cages with more than two cells not supported")
 	}
-	return propagator.DomainsOf(c.Cells...)
+	return propagator.IdsOf(c.Cells...)
 }
 
 func (c DivCage) Propagate(mutator *propagator.Mutator) {

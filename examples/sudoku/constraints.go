@@ -8,8 +8,8 @@ type House struct {
 	Cells []*Cell
 }
 
-func (h House) Scope() []*propagator.Domain {
-	return propagator.DomainsOf(h.Cells...)
+func (h House) Scope() []propagator.DomainId {
+	return propagator.IdsOf(h.Cells...)
 }
 
 func (h House) Propagate(mutator *propagator.Mutator) {

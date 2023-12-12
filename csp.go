@@ -10,7 +10,7 @@ type CSP struct {
 	domainNames            []string
 	domainIndices          [][]*index
 	domainAvailableIndices [][]int
-	domainConstraints      map[*Domain][]constraintId
+	domainConstraints      map[DomainId][]constraintId
 	constraints            []boundConstraint
 }
 
@@ -21,7 +21,7 @@ func NewCSP() *CSP {
 		domains:                []*Domain{},
 		nextDomainId:           0,
 		domainNames:            []string{},
-		domainConstraints:      make(map[*Domain][]constraintId),
+		domainConstraints:      make(map[DomainId][]constraintId),
 		domainIndices:          [][]*index{},
 		domainAvailableIndices: [][]int{},
 		constraints:            []boundConstraint{},
