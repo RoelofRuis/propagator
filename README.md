@@ -10,7 +10,7 @@ A constraint satisfaction problem consists of variables that can each take on on
 These values are called the variable domain.
 Constraints define relations between these variables, allowing to iteratively reduce the variable domains, until either a solution is found, or the problem turns out to be unsolvable, meaning there is no combination of values that satisfy all constraints.
 
-Once you have modeled your problem in terms of variables and constraints, proceed to the next steps.
+The first step of using this library is defining your problem in terms of variables and constraints. Once you have done that, proceed with the next sections.
 
 ### 1 - Define your variables
 
@@ -38,7 +38,7 @@ type House struct {
 	Cells []*Cell
 }
 
-func (h House) Scope() []*propagator.Domain {
+func (h House) Scope() []propagator.Domain {
 	return propagator.DomainsOf(h.Cells)
 }
 
@@ -46,7 +46,7 @@ func (h House) Propagate(mutator *propagator.Mutator) {
 	/* ... logic omitted ... */
 }
 ```
-`Scope` should return a list of domains that this constraint applies to. As Variables are built on top of domains, these can be easily extracted.
+`Scope` should return a list of domains that this constraint applies to. Because each `Variable` implements `Domain`, these can be easily extracted.
 
 The implementation of `Propagate` holds the most important logic. By passing different mutations to the mutator, changes to the domain are defined.
 Often, optimizing this implementation can speed up the solution process significantly.
@@ -57,8 +57,16 @@ Build a model using your variables and constraints.
 ```go
 builder := propagator.BuildModel()
 
-builder.AddDomain(variable.Domain)
-builder.AddConstraint(House{})
+v00 := propagator.NewVariableFromValues("1-1", []int{1,2,3,4,5,6,7,8,9})
+builder.AddDomain(v00)
+
+v01 := propagator.NewVariableFromValues("1-1", []int{1,2,3,4,5,6,7,8,9})
+builder.AddDomain(v01)
+// other variables
+
+house1 := House{Cells: []*Cell{v00, v01}}
+builder.AddConstraint(house1)
+// other constraints
 
 model := builder.Build()
 ```
