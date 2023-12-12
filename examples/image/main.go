@@ -71,7 +71,7 @@ func SolvePixelMatrix(size int, solver propagator.Solver) [][]*Pixel {
 		for x := 0; x < size; x++ {
 			pixel := propagator.NewVariableFromValues(fmt.Sprintf("%d-%d", x, y), values)
 			pixels[x][y] = pixel
-			builder.AddDomain(pixel)
+			builder.AddDomain(pixel.Domain)
 		}
 	}
 
@@ -102,7 +102,7 @@ type Adjacency struct {
 	P2 *Pixel
 }
 
-func (a Adjacency) Scope() []propagator.Domain {
+func (a Adjacency) Scope() []*propagator.Domain {
 	return propagator.DomainsOf(a.P1, a.P2)
 }
 

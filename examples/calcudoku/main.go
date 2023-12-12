@@ -37,7 +37,7 @@ func main() {
 	for y := 0; y < gridSize; y++ {
 		for x := 0; x < gridSize; x++ {
 			cell := propagator.NewVariableFromValues(fmt.Sprintf("%d,%d", x, y), values)
-			builder.AddDomain(cell)
+			builder.AddDomain(cell.Domain)
 			cells[x][y] = cell
 			rows[y].Cells = append(rows[y].Cells, cell)
 			cols[x].Cells = append(cols[x].Cells, cell)

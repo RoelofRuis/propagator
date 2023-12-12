@@ -40,7 +40,7 @@ func main() {
 				cell = propagator.NewVariableFromValues(fmt.Sprintf("%d,%d", x, y), []int{int(val)})
 			}
 			cells[x][y] = cell
-			builder.AddDomain(cell)
+			builder.AddDomain(cell.Domain)
 		}
 	}
 

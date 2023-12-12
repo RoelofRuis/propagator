@@ -12,7 +12,7 @@ type Solver struct {
 	maxSolutions   int
 	solutionsFound int
 
-	queue  *SetQueue[Domain]
+	queue  *SetQueue[*Domain]
 	events *PubSub
 }
 
@@ -37,7 +37,7 @@ func NewSolver(options ...SolverOption) Solver {
 		solutionsFound: 0,
 		maxSolutions:   1,
 		events:         NewPubsub(),
-		queue:          NewSetQueue[Domain](), // domain ids
+		queue:          NewSetQueue[*Domain](), // domain ids
 	}
 	for _, opt := range options {
 		opt(&solver)
@@ -86,7 +86,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 	selectMutations := NewMutator()
 
 	for {
-		selectedIndex := s.nextIndex(domain)
+		selectedIndex := s.nextIndex(model, domain)
 		if selectedIndex == -1 {
 			selectMutations.revertAll()
 			return false
@@ -108,7 +108,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 	}
 }
 
-func (s *Solver) propagate(model Model, domains ...Domain) (*Mutator, bool) {
+func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 	s.events.Publish(PropagateStart)
 	for _, domain := range domains {
 		s.queue.Enqueue(domain)
@@ -122,7 +122,7 @@ func (s *Solver) propagate(model Model, domains ...Domain) (*Mutator, bool) {
 		s.events.Publish(PropagateRound)
 
 		selectedDomain := s.queue.Dequeue()
-		targetDomains := Set[Domain]{}
+		targetDomains := Set[*Domain]{}
 
 		for _, constraintId := range model.domainConstraints[selectedDomain] {
 			constraint := model.constraints[constraintId]
@@ -135,9 +135,9 @@ func (s *Solver) propagate(model Model, domains ...Domain) (*Mutator, bool) {
 			}
 		}
 
-		versions := make(map[Domain]int)
+		versions := make(map[*Domain]int)
 		for targetDomain := range targetDomains {
-			versions[targetDomain] = targetDomain.getVersion()
+			versions[targetDomain] = targetDomain.version
 		}
 
 		mutator.apply()
@@ -148,7 +148,7 @@ func (s *Solver) propagate(model Model, domains ...Domain) (*Mutator, bool) {
 				return mutator, false
 			}
 
-			if targetDomain.getVersion() > versions[targetDomain] {
+			if targetDomain.version > versions[targetDomain] {
 				s.queue.Enqueue(targetDomain)
 			}
 		}

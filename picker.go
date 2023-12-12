@@ -6,17 +6,17 @@ import (
 )
 
 // domainPicker selects the next domain for which a value will be picked.
-type domainPicker func(m Model) Domain
+type domainPicker func(m Model) *Domain
 
-func nextDomainByMinEntropy(m Model) Domain {
+func nextDomainByMinEntropy(m Model) *Domain {
 	minEntropy := math.Inf(+1)
-	var nextDomain Domain
+	var nextDomain *Domain
 	for _, domain := range m.domains {
 		if !domain.IsUnassigned() {
 			continue
 		}
 
-		entropy := domain.Entropy()
+		entropy := m.EntropyOf(domain)
 		if entropy < minEntropy {
 			nextDomain = domain
 			minEntropy = entropy
@@ -26,7 +26,7 @@ func nextDomainByMinEntropy(m Model) Domain {
 	return nextDomain
 }
 
-func nextDomainByIndex(m Model) Domain {
+func nextDomainByIndex(m Model) *Domain {
 	for _, domain := range m.domains {
 		if domain.IsUnassigned() {
 			return domain
@@ -36,8 +36,8 @@ func nextDomainByIndex(m Model) Domain {
 	return nil
 }
 
-func nextDomainAtRandom(m Model) Domain {
-	var validDomains []Domain
+func nextDomainAtRandom(m Model) *Domain {
+	var validDomains []*Domain
 	for _, domain := range m.domains {
 		if domain.IsUnassigned() {
 			validDomains = append(validDomains, domain)
@@ -47,17 +47,17 @@ func nextDomainAtRandom(m Model) Domain {
 }
 
 // indexPicker selects the next index from a given domain.
-type indexPicker func(d Domain) int
+type indexPicker func(m Model, d *Domain) int
 
-func nextIndexByProbability(d Domain) int {
-	cdfIdx := make([]int, 0, d.numIndices())
-	cdf := make([]float64, 0, d.numIndices())
+func nextIndexByProbability(m Model, d *Domain) int {
+	cdfIdx := make([]int, 0, m.NumIndicesOf(d))
+	cdf := make([]float64, 0, m.NumIndicesOf(d))
 
-	minPriority := d.getMinPriority()
+	minPriority := d.minPriority
 
 	probSum := 0.0
 	prev := 0.0
-	for i := 0; i < d.numIndices(); i++ {
+	for i := 0; i < m.NumIndicesOf(d); i++ {
 		idx := d.getIndex(i)
 		if idx.isBanned || idx.priority != minPriority {
 			continue
