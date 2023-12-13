@@ -15,7 +15,7 @@ type Variable[T comparable] struct {
 // AvailableValues returns the list of still allowed values.
 func (v *Variable[T]) AvailableValues() []T {
 	if v.version() != v.cachedValueVersion {
-		availableIndices := v.availableIndices()
+		availableIndices := v.AvailableIndices()
 		v.cachedValues = v.cachedValues[:len(availableIndices)]
 		for i, idx := range availableIndices {
 			v.cachedValues[i] = v.values[idx]
@@ -65,7 +65,7 @@ func (v *Variable[T]) HasAnyOf(values ...T) bool {
 // This function panics if the variable is not assigned a single value. Use Domain.IsAssigned to check for this.
 func (v *Variable[T]) GetAssignedValue() T {
 	if v.IsAssigned() {
-		return v.values[v.availableIndices()[0]]
+		return v.values[v.AvailableIndices()[0]]
 	}
 	panic("Trying to GetAssignedValue on non fixed variable. Use IsAssigned to check.")
 }
@@ -82,7 +82,7 @@ func (v *Variable[T]) UpdateProbabilityByValue(factory float64, value T) Mutatio
 
 // UpdateByValue creates a Mutation that updates the probability and priority of the index associated with the given value.
 func (v *Variable[T]) UpdateByValue(probabilityFactor float64, priority int, value T) Mutation {
-	for _, availableIndex := range v.availableIndices() {
+	for _, availableIndex := range v.AvailableIndices() {
 		if v.values[availableIndex] == value {
 			return v.Update(probabilityFactor, priority, availableIndex)
 		}
@@ -93,7 +93,7 @@ func (v *Variable[T]) UpdateByValue(probabilityFactor float64, priority int, val
 // AssignByValue creates a Mutation that assigns this variable the value T.
 // The specific value must exist in the variable to be assignable.
 func (v *Variable[T]) AssignByValue(value T) Mutation {
-	for _, availableIndex := range v.availableIndices() {
+	for _, availableIndex := range v.AvailableIndices() {
 		if v.values[availableIndex] == value {
 			return v.Assign(availableIndex)
 		}
@@ -104,7 +104,7 @@ func (v *Variable[T]) AssignByValue(value T) Mutation {
 // ExcludeBy creates a Mutation that excludes all values for which shouldBan returns true.
 func (v *Variable[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
 	v.model.indexBuffer = v.model.indexBuffer[:0]
-	for _, availableIndex := range v.availableIndices() {
+	for _, availableIndex := range v.AvailableIndices() {
 		if shouldBan(v.values[availableIndex]) {
 			v.model.indexBuffer = append(v.model.indexBuffer, availableIndex)
 		}

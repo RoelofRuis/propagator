@@ -1,6 +1,8 @@
 package propagator
 
-import "math"
+import (
+	"math"
+)
 
 // Domain is a representation of a Variable domain.
 // Use the mutator functions to create Mutation instances defining mutations on this domain.
@@ -34,7 +36,7 @@ func (d *Domain) Exclude(indices ...int) Mutation {
 // Contradict creates a Mutation that excludes all indices from this domain.
 func (d *Domain) Contradict() Mutation {
 	d.model.indexBuffer = d.model.indexBuffer[:0]
-	for _, availableIndex := range d.availableIndices() {
+	for _, availableIndex := range d.AvailableIndices() {
 		d.model.indexBuffer = append(d.model.indexBuffer, availableIndex)
 	}
 	return d.Exclude(d.model.indexBuffer...)
@@ -69,17 +71,17 @@ func (d *Domain) Update(probabilityFactor float64, priority int, indices ...int)
 
 // IsAssigned returns whether this domain is assigned exactly one index.
 func (d *Domain) IsAssigned() bool {
-	return len(d.availableIndices()) == 1
+	return len(d.AvailableIndices()) == 1
 }
 
 // IsUnassigned returns whether this domain allows a choice between more than one index.
 func (d *Domain) IsUnassigned() bool {
-	return len(d.availableIndices()) > 1
+	return len(d.AvailableIndices()) > 1
 }
 
 // IsInContradiction returns whether this domain has no indices available.
 func (d *Domain) IsInContradiction() bool {
-	return len(d.availableIndices()) == 0
+	return len(d.AvailableIndices()) == 0
 }
 
 // IndexPriority returns the priority of the given index.
@@ -95,6 +97,11 @@ func (d *Domain) IndexProbability(index int) float64 {
 // Name returns the name of this domain.
 func (d *Domain) Name() string {
 	return d.model.domainNames[d.id]
+}
+
+// AvailableIndices returns the indices that can still be selected for this domain.
+func (d *Domain) AvailableIndices() []int {
+	return d.model.domainAvailableIndices[d.id]
 }
 
 func (d *Domain) numIndices() int {
@@ -123,10 +130,6 @@ func (d *Domain) minPriority() int {
 
 func (d *Domain) indices() []*index {
 	return d.model.domainIndices[d.id]
-}
-
-func (d *Domain) availableIndices() []int {
-	return d.model.domainAvailableIndices[d.id]
 }
 
 func (d *Domain) entropy() float64 {
