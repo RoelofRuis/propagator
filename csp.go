@@ -70,7 +70,7 @@ func (c *Problem) Model() Model {
 	c.model.domainMinPriority = domainMinPriority
 	c.model.domainIndices = c.domainIndices
 	c.model.domainAvailableIndices = c.domainAvailableIndices
-	c.model.indexBuffer = make([]int, slices.Max(domainNumIndices))
+	c.model.indexBuffer = make([]int, 0, slices.Max(domainNumIndices))
 
 	for _, domain := range c.domains {
 		domain.update()
