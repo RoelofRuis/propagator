@@ -5,8 +5,6 @@ import "math"
 type Domain struct {
 	id    DomainId
 	model *Model
-
-	indexBuffer []int
 }
 
 func (d *Domain) Assign(index int) Mutation {
@@ -14,15 +12,15 @@ func (d *Domain) Assign(index int) Mutation {
 		return d.Contradict()
 	}
 
-	d.indexBuffer = d.indexBuffer[:0]
+	d.model.indexBuffer = d.model.indexBuffer[:0]
 	for _, availableIndex := range d.model.domainAvailableIndices[d.id] {
 		if availableIndex == index {
 			continue
 		}
-		d.indexBuffer = append(d.indexBuffer, availableIndex)
+		d.model.indexBuffer = append(d.model.indexBuffer, availableIndex)
 	}
 
-	return d.Exclude(d.indexBuffer...)
+	return d.Exclude(d.model.indexBuffer...)
 }
 
 func (d *Domain) Exclude(indices ...int) Mutation {
@@ -30,21 +28,25 @@ func (d *Domain) Exclude(indices ...int) Mutation {
 }
 
 func (d *Domain) Contradict() Mutation {
-	d.indexBuffer = d.indexBuffer[:0]
+	d.model.indexBuffer = d.model.indexBuffer[:0]
 	for _, availableIndex := range d.availableIndices() {
-		d.indexBuffer = append(d.indexBuffer, availableIndex)
+		d.model.indexBuffer = append(d.model.indexBuffer, availableIndex)
 	}
-	return d.Exclude(d.indexBuffer...)
+	return d.Exclude(d.model.indexBuffer...)
 }
 
-func (d *Domain) Update(probabilityFactory float64, priority int, indices ...int) Mutation {
+func (d *Domain) Update(probabilityFactor float64, priority int, indices ...int) Mutation {
 	if len(indices) == 0 {
 		return DoNothing
 	}
+
+	mutationIndices := make([]int, len(indices))
+	copy(mutationIndices, indices)
+
 	return Mutation{
 		domain:      d,
-		indices:     indices,
-		probability: probabilityFactory,
+		indices:     mutationIndices,
+		probability: probabilityFactor,
 		priority:    priority,
 	}
 }

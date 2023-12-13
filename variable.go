@@ -86,13 +86,13 @@ func (v *Variable[T]) AssignByValue(value T) Mutation {
 }
 
 func (v *Variable[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
-	v.indexBuffer = v.indexBuffer[:0]
+	v.model.indexBuffer = v.model.indexBuffer[:0]
 	for _, availableIndex := range v.availableIndices() {
 		if shouldBan(v.values[availableIndex]) {
-			v.indexBuffer = append(v.indexBuffer, availableIndex)
+			v.model.indexBuffer = append(v.model.indexBuffer, availableIndex)
 		}
 	}
-	return v.Exclude(v.indexBuffer...)
+	return v.Exclude(v.model.indexBuffer...)
 }
 
 func (v *Variable[T]) ExcludeByValue(values ...T) Mutation {

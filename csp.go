@@ -1,6 +1,9 @@
 package propagator
 
-import "math"
+import (
+	"math"
+	"slices"
+)
 
 // CSP holds information about a constraint satisfaction problem under construction.
 type CSP struct {
@@ -64,6 +67,7 @@ func (c *CSP) GetModel() Model {
 	c.model.domainMinPriority = domainMinPriority
 	c.model.domainIndices = c.domainIndices
 	c.model.domainAvailableIndices = c.domainAvailableIndices
+	c.model.indexBuffer = make([]int, slices.Max(domainNumIndices))
 
 	for _, domain := range c.domains {
 		domain.update()
@@ -98,9 +102,8 @@ func AddVariable[T comparable](csp *CSP, name string, initialValues []DomainValu
 	}
 
 	domain := Domain{
-		id:          csp.nextDomainId,
-		model:       csp.model,
-		indexBuffer: make([]int, 0, len(initialValues)),
+		id:    csp.nextDomainId,
+		model: csp.model,
 	}
 
 	variable := &Variable[T]{

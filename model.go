@@ -16,6 +16,8 @@ type Model struct {
 	domainMinPriority      []int
 	domainIndices          [][]*index
 	domainAvailableIndices [][]int
+
+	indexBuffer []int
 }
 
 // boundConstraint defines the link between a Constraint and its related domains.
