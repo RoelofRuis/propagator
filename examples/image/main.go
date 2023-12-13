@@ -65,7 +65,7 @@ func SolvePixelMatrix(size int, solver propagator.Solver) [][]*Pixel {
 		pixels[i] = make([]*Pixel, size)
 	}
 
-	csp := propagator.NewCSP()
+	csp := propagator.NewProblem()
 
 	for y := 0; y < size; y++ {
 		for x := 0; x < size; x++ {
@@ -85,7 +85,7 @@ func SolvePixelMatrix(size int, solver propagator.Solver) [][]*Pixel {
 		}
 	}
 
-	model := csp.GetModel()
+	model := csp.Model()
 
 	if !solver.Solve(model) {
 		panic("unable to solve")

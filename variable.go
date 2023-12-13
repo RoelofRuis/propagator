@@ -1,13 +1,18 @@
 package propagator
 
+// Variable holds some number of values of type T.
+// It is an expansion of Domain that associates the actual types relevant to the problem with the probability and
+// priority of the indices.
 type Variable[T comparable] struct {
 	Domain
 	values []T
 
+	// cachedValueVersion is the Domain.version for which the cachedValues are calculated.
 	cachedValueVersion int
 	cachedValues       []T
 }
 
+// AvailableValues returns the list of still allowed values.
 func (v *Variable[T]) AvailableValues() []T {
 	if v.version() != v.cachedValueVersion {
 		availableIndices := v.availableIndices()
@@ -19,10 +24,12 @@ func (v *Variable[T]) AvailableValues() []T {
 	return v.cachedValues
 }
 
+// IsValueAvailable checks whether a given value is still allowed to be selected.
 func (v *Variable[T]) IsValueAvailable(value T) bool {
 	return v.Exists(func(a T) bool { return a == value })
 }
 
+// Exists checks whether within the available values there exists a value passing the provided check.
 func (v *Variable[T]) Exists(check func(a T) bool) bool {
 	for _, availableValue := range v.AvailableValues() {
 		if check(availableValue) {
@@ -32,6 +39,7 @@ func (v *Variable[T]) Exists(check func(a T) bool) bool {
 	return false
 }
 
+// ForEach checks whether within the available values all values pass the provided check.
 func (v *Variable[T]) ForEach(check func(a T) bool) bool {
 	for _, availableValue := range v.AvailableValues() {
 		if !check(availableValue) {
@@ -41,6 +49,7 @@ func (v *Variable[T]) ForEach(check func(a T) bool) bool {
 	return true
 }
 
+// HasAnyOf checks whether any of the given values are still allowed to be selected.
 func (v *Variable[T]) HasAnyOf(values ...T) bool {
 	return v.Exists(func(a T) bool {
 		for _, value := range values {
@@ -52,6 +61,8 @@ func (v *Variable[T]) HasAnyOf(values ...T) bool {
 	})
 }
 
+// GetAssignedValue returns the single assigned value.
+// This function panics if the variable is not assigned a single value. Use Domain.IsAssigned to check for this.
 func (v *Variable[T]) GetAssignedValue() T {
 	if v.IsAssigned() {
 		return v.values[v.availableIndices()[0]]
@@ -59,14 +70,17 @@ func (v *Variable[T]) GetAssignedValue() T {
 	panic("Trying to GetAssignedValue on non fixed variable. Use IsAssigned to check.")
 }
 
+// UpdatePriorityByValue creates a Mutation that updates the priority of the index associated with the given value.
 func (v *Variable[T]) UpdatePriorityByValue(priority int, value T) Mutation {
 	return v.UpdateByValue(1.0, priority, value)
 }
 
+// UpdateProbabilityByValue creates a Mutation that updates the probability of the index associated with the given value.
 func (v *Variable[T]) UpdateProbabilityByValue(factory float64, value T) Mutation {
 	return v.UpdateByValue(factory, 0, value)
 }
 
+// UpdateByValue creates a Mutation that updates the probability and priority of the index associated with the given value.
 func (v *Variable[T]) UpdateByValue(probabilityFactor float64, priority int, value T) Mutation {
 	for _, availableIndex := range v.availableIndices() {
 		if v.values[availableIndex] == value {
@@ -76,6 +90,8 @@ func (v *Variable[T]) UpdateByValue(probabilityFactor float64, priority int, val
 	return DoNothing
 }
 
+// AssignByValue creates a Mutation that assigns this variable the value T.
+// The specific value must exist in the variable to be assignable.
 func (v *Variable[T]) AssignByValue(value T) Mutation {
 	for _, availableIndex := range v.availableIndices() {
 		if v.values[availableIndex] == value {
@@ -85,6 +101,7 @@ func (v *Variable[T]) AssignByValue(value T) Mutation {
 	return DoNothing
 }
 
+// ExcludeBy creates a Mutation that excludes all values for which shouldBan returns true.
 func (v *Variable[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
 	v.model.indexBuffer = v.model.indexBuffer[:0]
 	for _, availableIndex := range v.availableIndices() {
@@ -95,6 +112,7 @@ func (v *Variable[T]) ExcludeBy(shouldBan func(T) bool) Mutation {
 	return v.Exclude(v.model.indexBuffer...)
 }
 
+// ExcludeByValue creates a Mutation that excludes all given values.
 func (v *Variable[T]) ExcludeByValue(values ...T) Mutation {
 	return v.ExcludeBy(func(a T) bool {
 		for _, value := range values {
@@ -104,12 +122,4 @@ func (v *Variable[T]) ExcludeByValue(values ...T) Mutation {
 		}
 		return false
 	})
-}
-
-func IdsOf[T comparable](vars ...*Variable[T]) []DomainId {
-	domainIds := make([]DomainId, 0, len(vars))
-	for _, v := range vars {
-		domainIds = append(domainIds, v.Domain.id)
-	}
-	return domainIds
 }

@@ -25,7 +25,7 @@ func main() {
 		cells[i] = make([]*Cell, gridSize)
 	}
 
-	csp := propagator.NewCSP()
+	csp := propagator.NewProblem()
 
 	for y := 0; y < gridSize; y++ {
 		for x := 0; x < gridSize; x++ {
@@ -73,7 +73,7 @@ func main() {
 	csp.AddConstraint(House{[]*Cell{cells[3][6], cells[4][6], cells[5][6], cells[3][7], cells[4][7], cells[5][7], cells[3][8], cells[4][8], cells[5][8]}})
 	csp.AddConstraint(House{[]*Cell{cells[6][6], cells[7][6], cells[8][6], cells[6][7], cells[7][7], cells[8][7], cells[6][8], cells[7][8], cells[8][8]}})
 
-	model := csp.GetModel()
+	model := csp.Model()
 
 	solver := propagator.NewSolver()
 

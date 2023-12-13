@@ -6,13 +6,13 @@ import (
 )
 
 func TestSolver_FindAll(t *testing.T) {
-	csp := NewCSP()
+	csp := NewProblem()
 	varA := AddVariableFromValues(csp, "A", []int{1, 2, 3})
 	varB := AddVariableFromValues(csp, "B", []int{1, 2, 3})
 
 	csp.AddConstraint(largerThan{varA, varB})
 
-	model := csp.GetModel()
+	model := csp.Model()
 
 	var solutions [][2]int
 
@@ -32,14 +32,14 @@ func TestSolver_FindAll(t *testing.T) {
 }
 
 func TestSolver_FindFirstN(t *testing.T) {
-	csp := NewCSP()
+	csp := NewProblem()
 
 	varA := AddVariableFromValues(csp, "A", []int{1, 2, 3, 4})
 	varB := AddVariableFromValues(csp, "B", []int{1, 2, 3, 4})
 
 	csp.AddConstraint(largerThan{varA, varB})
 
-	model := csp.GetModel()
+	model := csp.Model()
 
 	var solutions [][2]int
 
@@ -60,20 +60,20 @@ func TestSolver_FindFirstN(t *testing.T) {
 
 func TestSolver(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		csp := NewCSP()
+		csp := NewProblem()
 		varA := AddVariableFromValues(csp, "A", []int{0, 1})
 		vara := AddVariableFromValues(csp, "a", []int{0, 1})
 		varb := AddVariableFromValues(csp, "b", []int{0, 1})
 		varB := AddVariableFromValues(csp, "B", []int{0, 1})
 
-		// vara and varb are hidden domains: they will not be picked/actively solved for...? TODO: is this still true?
+		// vara and varb are hidden Domains: they will not be picked/actively solved for...? TODO: is this still true?
 		variables := []*Variable[int]{varA, vara, varb, varB}
 
 		csp.AddConstraint(equals{varA, vara})
 		csp.AddConstraint(equals{varB, varb})
 		csp.AddConstraint(constraint{vara, varb})
 
-		model := csp.GetModel()
+		model := csp.Model()
 
 		solver := NewSolver(
 			WithSeed(int64(i)),

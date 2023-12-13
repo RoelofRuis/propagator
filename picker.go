@@ -12,7 +12,7 @@ type domainPicker func(m Model, rnd *rand.Rand) *Domain
 func nextDomainByMinEntropy(m Model, rnd *rand.Rand) *Domain {
 	minEntropy := math.Inf(+1)
 	var nextDomain *Domain
-	for _, domain := range m.domains {
+	for _, domain := range m.Domains {
 		if !domain.IsUnassigned() {
 			continue
 		}
@@ -28,7 +28,7 @@ func nextDomainByMinEntropy(m Model, rnd *rand.Rand) *Domain {
 }
 
 func nextDomainByIndex(m Model, rnd *rand.Rand) *Domain {
-	for _, domain := range m.domains {
+	for _, domain := range m.Domains {
 		if domain.IsUnassigned() {
 			return domain
 		}
@@ -39,7 +39,7 @@ func nextDomainByIndex(m Model, rnd *rand.Rand) *Domain {
 
 func nextDomainAtRandom(m Model, rnd *rand.Rand) *Domain {
 	var validDomains []*Domain
-	for _, domain := range m.domains {
+	for _, domain := range m.Domains {
 		if domain.IsUnassigned() {
 			validDomains = append(validDomains, domain)
 		}

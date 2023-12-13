@@ -6,7 +6,7 @@ import (
 )
 
 func TestMutation(t *testing.T) {
-	csp := NewCSP()
+	csp := NewProblem()
 
 	indices := []DomainValue[int]{
 		{0, 1.0, 1},
@@ -15,7 +15,7 @@ func TestMutation(t *testing.T) {
 
 	domain := AddVariable(csp, "test", indices)
 
-	csp.GetModel()
+	csp.Model()
 
 	mutator := newMutator()
 

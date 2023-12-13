@@ -10,7 +10,7 @@ func main() {
 
 	digits := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
-	csp := propagator.NewCSP()
+	csp := propagator.NewProblem()
 	variables := make(map[string]*propagator.Variable[int])
 	allDifferent := AllDifferent{}
 	for _, letter := range letters {
@@ -31,7 +31,7 @@ func main() {
 
 	csp.AddConstraint(Sum{n1, n2, n3})
 
-	model := csp.GetModel()
+	model := csp.Model()
 
 	solver := propagator.NewSolver()
 

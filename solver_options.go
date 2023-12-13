@@ -7,24 +7,28 @@ import (
 	"strings"
 )
 
+// SolverOption functional option for the Solver.
 type SolverOption func(solver *Solver)
 
+// WithSeed explicitly sets the random seed to allow reproducible randomness.
 func WithSeed(int int64) SolverOption {
 	return func(s *Solver) {
 		s.rnd = rand.New(rand.NewSource(int))
 	}
 }
 
+// On hooks a function to the solver when the given SolverEvent fires.
 func On(event SolverEvent, f func()) SolverOption {
 	return func(s *Solver) {
 		s.events.Subscribe(event, f)
 	}
 }
 
+// LogInfo logs solver info during running.
 func LogInfo() SolverOption {
 	return func(s *Solver) {
 		round := 0
-		s.events.Subscribe(Start, func() { log.Printf("[SOLVER] Starting\nRND Seed [%d]\n", s.rnd.Int()) })
+		s.events.Subscribe(Start, func() { log.Printf("[SOLVER] Starting\n") })
 		s.events.Subscribe(Failure, func() { log.Print("[SOLVER] Failed finding solution\n") })
 		s.events.Subscribe(SolutionFound, func() { log.Print("[SOLVER] Solution found\n") })
 		s.events.Subscribe(Select, func() {
@@ -40,6 +44,7 @@ func LogInfo() SolverOption {
 	}
 }
 
+// LogConstraints logs the model constraints when solving is started.
 func LogConstraints(model Model) SolverOption {
 	return func(s *Solver) {
 		s.events.Subscribe(Start, func() {
@@ -48,7 +53,7 @@ func LogConstraints(model Model) SolverOption {
 				constraintName := reflect.TypeOf(boundConstraint.constraint)
 				var links []string
 				for _, domain := range boundConstraint.linkedDomains {
-					links = append(links, model.domains[domain].Name())
+					links = append(links, model.Domains[domain].Name())
 				}
 				log.Printf("%-4d %s\n     %s\n", i, constraintName, strings.Join(links, " "))
 			}
@@ -70,12 +75,12 @@ func FindAllSolutions() SolverOption {
 	}
 }
 
-// SelectDomainsByIndex select next domains in order by index.
+// SelectDomainsByIndex select next Domains in order by index.
 func SelectDomainsByIndex() SolverOption {
 	return SelectDomainsBy(nextDomainByIndex)
 }
 
-// SelectDomainsAtRandom selects next domains at random.
+// SelectDomainsAtRandom selects next Domains at random.
 func SelectDomainsAtRandom() SolverOption {
 	return SelectDomainsBy(nextDomainAtRandom)
 }

@@ -1,3 +1,4 @@
+// Package propagator contains a framework for defining and solving constraint satisfaction problems.
 package propagator
 
 import (
@@ -5,8 +6,9 @@ import (
 	"slices"
 )
 
-// CSP holds information about a constraint satisfaction problem under construction.
-type CSP struct {
+// Problem holds information about a constraint satisfaction problem under construction.
+// Use NewProblem to start defining a new problem.
+type Problem struct {
 	model                  *Model
 	domains                []*Domain
 	nextDomainId           DomainId
@@ -17,9 +19,9 @@ type CSP struct {
 	constraints            []boundConstraint
 }
 
-// NewCSP returns a builder with which to define a constraint satisfaction problem.
-func NewCSP() *CSP {
-	return &CSP{
+// NewProblem returns a builder with which to define a constraint satisfaction problem.
+func NewProblem() *Problem {
+	return &Problem{
 		model:                  &Model{},
 		domains:                []*Domain{},
 		nextDomainId:           0,
@@ -38,8 +40,9 @@ type DomainValue[T comparable] struct {
 	Value       T
 }
 
-// GetModel returns the initialized model. Should be called after the problem is completely defined.
-func (c *CSP) GetModel() Model {
+// Model returns the initialized model.
+// This should be called after the problem is completely defined.
+func (c *Problem) Model() Model {
 	numDomains := c.nextDomainId
 
 	domainNumIndices := make([]int, numDomains)
@@ -56,7 +59,7 @@ func (c *CSP) GetModel() Model {
 		domainMinPriority[i] = 0
 	}
 
-	c.model.domains = c.domains
+	c.model.Domains = c.domains
 	c.model.domainConstraints = c.domainConstraints
 	c.model.constraints = c.constraints
 	c.model.domainNumIndices = domainNumIndices
@@ -76,12 +79,12 @@ func (c *CSP) GetModel() Model {
 	return *c.model
 }
 
-// AddConstraint adds a constraint to the CSP definition.
-func (c *CSP) AddConstraint(constraint Constraint) {
+// AddConstraint adds a constraint to the Problem definition.
+func (c *Problem) AddConstraint(constraint Constraint) {
 	index := len(c.constraints)
 	domainsInScope := constraint.Scope()
 	if len(domainsInScope) == 0 {
-		panic("constraint scope contains no domains")
+		panic("constraint scope contains no Domains")
 	}
 
 	c.constraints = append(c.constraints, boundConstraint{constraint, domainsInScope})
@@ -92,7 +95,8 @@ func (c *CSP) AddConstraint(constraint Constraint) {
 	}
 }
 
-func AddVariable[T comparable](csp *CSP, name string, initialValues []DomainValue[T]) *Variable[T] {
+// AddVariable adds a variable to the Problem definition.
+func AddVariable[T comparable](csp *Problem, name string, initialValues []DomainValue[T]) *Variable[T] {
 	values := make([]T, len(initialValues))
 	indices := make([]*index, len(initialValues))
 
@@ -122,7 +126,9 @@ func AddVariable[T comparable](csp *CSP, name string, initialValues []DomainValu
 	return variable
 }
 
-func AddVariableFromValues[T comparable](csp *CSP, name string, values []T) *Variable[T] {
+// AddVariableFromValues adds a variable to the Problem definition and automatically gives all values equal probability
+// and priority.
+func AddVariableFromValues[T comparable](csp *Problem, name string, values []T) *Variable[T] {
 	domainValues := make([]DomainValue[T], len(values))
 	for i, value := range values {
 		domainValues[i] = DomainValue[T]{0, 1.0, value}

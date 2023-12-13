@@ -32,7 +32,7 @@ func main() {
 		cols[i] = House{}
 	}
 
-	csp := propagator.NewCSP()
+	csp := propagator.NewProblem()
 
 	for y := 0; y < gridSize; y++ {
 		for x := 0; x < gridSize; x++ {
@@ -78,7 +78,7 @@ func main() {
 		}
 	}
 
-	model := csp.GetModel()
+	model := csp.Model()
 
 	solver := propagator.NewSolver(
 		propagator.LogInfo(),

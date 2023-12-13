@@ -17,6 +17,7 @@ type Solver struct {
 	events *PubSub
 }
 
+// SolverEvent is used as key to hook functions to the solver.
 type SolverEvent = string
 
 const (
@@ -30,6 +31,7 @@ const (
 	Select         SolverEvent = "Select"
 )
 
+// NewSolver creates a new solver. It allows for SolverOptions to customize the solver behavior.
 func NewSolver(options ...SolverOption) Solver {
 	solver := Solver{
 		rnd:            rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64()))),
@@ -46,12 +48,14 @@ func NewSolver(options ...SolverOption) Solver {
 	return solver
 }
 
+// Solve runs the solving algorithm on the Model and returns whether a solution could be found.
+// The model is updated to reflect the found solution.
 func (s *Solver) Solve(model Model) bool {
 	s.events.Publish(Start)
 
 	s.indexPicker.init(model)
 
-	mutations, success := s.propagate(model, model.domains...)
+	mutations, success := s.propagate(model, model.Domains...)
 	if success {
 		s.events.Publish(SearchStart)
 		s.selectNext(0, model)
@@ -132,7 +136,7 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 			constraint.constraint.Propagate(mutator)
 
 			for _, targetDomainId := range constraint.linkedDomains {
-				targetDomains = targetDomains.Insert(model.domains[targetDomainId])
+				targetDomains = targetDomains.Insert(model.Domains[targetDomainId])
 			}
 		}
 
