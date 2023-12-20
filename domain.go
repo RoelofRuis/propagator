@@ -104,6 +104,16 @@ func (d *Domain) AvailableIndices() []int {
 	return d.model.domainAvailableIndices[d.id]
 }
 
+// IsHidden returns whether this domain is hidden and will not be picked and solved for.
+// Its constraint values will still be propagated though; in this way it still is part of the problem space.
+func (d *Domain) IsHidden() bool {
+	return d.model.domainHidden[d.id]
+}
+
+func (d *Domain) canBePicked() bool {
+	return d.IsUnassigned() && !d.IsHidden()
+}
+
 func (d *Domain) numIndices() int {
 	return d.model.domainNumIndices[d.id]
 }

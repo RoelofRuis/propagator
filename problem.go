@@ -13,6 +13,7 @@ type Problem struct {
 	domains                []*Domain
 	nextDomainId           DomainId
 	domainNames            []string
+	domainHidden           []bool
 	domainIndices          [][]*index
 	domainAvailableIndices [][]int
 	domainConstraints      map[DomainId][]constraintId
@@ -26,6 +27,7 @@ func NewProblem() *Problem {
 		domains:                []*Domain{},
 		nextDomainId:           0,
 		domainNames:            []string{},
+		domainHidden:           []bool{},
 		domainConstraints:      make(map[DomainId][]constraintId),
 		domainIndices:          [][]*index{},
 		domainAvailableIndices: [][]int{},
@@ -69,6 +71,7 @@ func (c *Problem) Model() Model {
 	c.model.domainSumProbability = domainSumProbability
 	c.model.domainMinPriority = domainMinPriority
 	c.model.domainIndices = c.domainIndices
+	c.model.domainHidden = c.domainHidden
 	c.model.domainAvailableIndices = c.domainAvailableIndices
 	c.model.indexBuffer = make([]int, 0, slices.Max(domainNumIndices))
 
@@ -97,6 +100,36 @@ func (c *Problem) AddConstraint(constraint Constraint) {
 
 // AddVariable adds a variable to the Problem definition.
 func AddVariable[T comparable](csp *Problem, name string, initialValues []DomainValue[T]) *Variable[T] {
+	return newVariable(csp, name, initialValues, false)
+}
+
+// AddHiddenVariable adds a hidden variable to the Problem definition.
+func AddHiddenVariable[T comparable](csp *Problem, name string, initialValues []DomainValue[T]) *Variable[T] {
+	return newVariable(csp, name, initialValues, true)
+}
+
+// AddVariableFromValues adds a variable to the Problem definition and automatically gives all values equal probability
+// and priority.
+func AddVariableFromValues[T comparable](csp *Problem, name string, values []T) *Variable[T] {
+	domainValues := make([]DomainValue[T], len(values))
+	for i, value := range values {
+		domainValues[i] = DomainValue[T]{0, 1.0, value}
+	}
+	return newVariable[T](csp, name, domainValues, false)
+}
+
+// AddHiddenVariableFromValues adds a hidden variable to the Problem definition and automatically gives all values
+// equal probability and priority.
+func AddHiddenVariableFromValues[T comparable](csp *Problem, name string, values []T) *Variable[T] {
+	domainValues := make([]DomainValue[T], len(values))
+	for i, value := range values {
+		domainValues[i] = DomainValue[T]{0, 1.0, value}
+	}
+	return newVariable[T](csp, name, domainValues, true)
+}
+
+// newVariable builds a new variable definition bound to the given problem.
+func newVariable[T comparable](csp *Problem, name string, initialValues []DomainValue[T], hidden bool) *Variable[T] {
 	values := make([]T, len(initialValues))
 	indices := make([]*index, len(initialValues))
 
@@ -122,16 +155,7 @@ func AddVariable[T comparable](csp *Problem, name string, initialValues []Domain
 	csp.domainNames = append(csp.domainNames, name)
 	csp.domainIndices = append(csp.domainIndices, indices)
 	csp.domainAvailableIndices = append(csp.domainAvailableIndices, make([]int, 0, len(indices)))
+	csp.domainHidden = append(csp.domainHidden, hidden)
 
 	return variable
-}
-
-// AddVariableFromValues adds a variable to the Problem definition and automatically gives all values equal probability
-// and priority.
-func AddVariableFromValues[T comparable](csp *Problem, name string, values []T) *Variable[T] {
-	domainValues := make([]DomainValue[T], len(values))
-	for i, value := range values {
-		domainValues[i] = DomainValue[T]{0, 1.0, value}
-	}
-	return AddVariable[T](csp, name, domainValues)
 }

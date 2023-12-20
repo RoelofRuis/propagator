@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	size := 300
+	size := 128
 
 	solverR := propagator.NewSolver(
 		propagator.WithSeed(time.Now().UnixMicro()),

@@ -11,6 +11,7 @@ type Model struct {
 	domainConstraints map[DomainId][]constraintId
 	constraints       []boundConstraint
 
+	domainHidden           []bool
 	domainNumIndices       []int
 	domainNames            []string
 	domainEntropy          []float64
@@ -32,6 +33,9 @@ type boundConstraint struct {
 // IsSolved returns whether this model currently is in a solved state.
 func (m *Model) IsSolved() bool {
 	for _, domain := range m.Domains {
+		if domain.IsHidden() {
+			continue
+		}
 		if !domain.IsAssigned() {
 			return false
 		}

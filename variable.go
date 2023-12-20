@@ -24,6 +24,12 @@ func (v *Variable[T]) AvailableValues() []T {
 	return v.cachedValues
 }
 
+// AvailableIndicesAndValues returns two slices of equal length, the first containing the still available indices and
+// the second containing the corresponding values.
+func (v *Variable[T]) AvailableIndicesAndValues() ([]int, []T) {
+	return v.AvailableIndices(), v.AvailableValues()
+}
+
 // IsValueAvailable checks whether a given value is still allowed to be selected.
 func (v *Variable[T]) IsValueAvailable(value T) bool {
 	return v.Exists(func(a T) bool { return a == value })

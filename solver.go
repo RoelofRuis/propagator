@@ -53,7 +53,7 @@ func NewSolver(options ...SolverOption) Solver {
 func (s *Solver) Solve(model Model) bool {
 	s.events.Publish(Start)
 
-	s.indexPicker.init(model)
+	s.indexPicker.init(model, s.rnd)
 
 	mutations, success := s.propagate(model, model.Domains...)
 	if success {
@@ -91,7 +91,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 	selectMutations := newMutator()
 
 	for {
-		selectedIndex := s.indexPicker.nextIndex(domain, s.rnd)
+		selectedIndex := s.indexPicker.nextIndex(domain)
 		if selectedIndex == -1 {
 			selectMutations.revertAll()
 			return false

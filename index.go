@@ -30,6 +30,7 @@ func (f *indexFactory) create(probability float64, priority int) *index {
 		return bannedIndex
 	}
 
+	// Optimized to reduce memory and cpu usage. FIXME: is this the best way to get this hash?
 	f.hash = ""
 	f.hash += string(strconv.AppendFloat(f.floatBuffer, probability, 'f', -1, 64))
 	f.hash += strconv.FormatInt(int64(priority), 10)

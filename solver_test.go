@@ -58,7 +58,7 @@ func TestSolver_FindFirstN(t *testing.T) {
 	}
 }
 
-func TestSolver(t *testing.T) {
+func TestSolve(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		csp := NewProblem()
 		varA := AddVariableFromValues(csp, "A", []int{0, 1})
@@ -66,7 +66,6 @@ func TestSolver(t *testing.T) {
 		varb := AddVariableFromValues(csp, "b", []int{0, 1})
 		varB := AddVariableFromValues(csp, "B", []int{0, 1})
 
-		// vara and varb are hidden Domains: they will not be picked/actively solved for...? TODO: is this still true?
 		variables := []*Variable[int]{varA, vara, varb, varB}
 
 		csp.AddConstraint(equals{varA, vara})
@@ -92,6 +91,48 @@ func TestSolver(t *testing.T) {
 				t.Fatalf("Invalid value for %s [RUN=%d]", v.Domain.Name(), i)
 			}
 		}
+	}
+}
+
+func TestSolve_Hidden(t *testing.T) {
+	csp := NewProblem()
+
+	varA := AddVariableFromValues(csp, "A", []int{1, 2})
+	varB := AddVariableFromValues(csp, "B", []int{1, 2})
+	varC := AddHiddenVariableFromValues(csp, "C", []int{1, 2, 3, 4})
+
+	csp.AddConstraint(largerThan{varB, varA})
+	csp.AddConstraint(largerThan{varC, varB})
+
+	model := csp.Model()
+
+	solver := NewSolver()
+
+	solved := solver.Solve(model)
+
+	if !solved {
+		t.Fatalf("Failed to find solution")
+	}
+
+	if !varA.IsAssigned() {
+		t.Fatalf("Variable A should have a solution")
+	}
+	if varA.GetAssignedValue() != 1 {
+		t.Fatalf("Variable A has wrong solution")
+	}
+
+	if !varB.IsAssigned() {
+		t.Fatalf("Variable B should have a solution")
+	}
+	if varB.GetAssignedValue() != 2 {
+		t.Fatalf("Variable B has wrong solution")
+	}
+
+	if varC.IsAssigned() {
+		t.Fatalf("Variable C should not be solved because it is hidden")
+	}
+	if len(varC.AvailableValues()) != 2 || varC.AvailableValues()[0] != 3 || varC.AvailableValues()[1] != 4 {
+		t.Fatalf("Variable C has wrong solution")
 	}
 }
 

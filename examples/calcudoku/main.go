@@ -83,7 +83,7 @@ func main() {
 	solver := propagator.NewSolver(
 		// FIXME: with this problem the solution time seems to depend very much on the seed.
 		propagator.WithSeed(0),
-		propagator.LogInfo(),
+		//propagator.LogInfo(),
 	)
 
 	if !solver.Solve(model) {
