@@ -44,11 +44,3 @@ func (m *Model) IsSolved() bool {
 	}
 	return true
 }
-
-func (m *Model) TotalAvailableIndices() int {
-	sum := 0
-	for _, availableIndices := range m.domainAvailableIndices {
-		sum += len(availableIndices)
-	}
-	return sum
-}

@@ -36,7 +36,7 @@ func NewSolver(options ...SolverOption) Solver {
 	solver := Solver{
 		rnd:            rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64()))),
 		domainPicker:   &MinRemainingValuesPicker{},
-		indexPicker:    &RandomIndexPicker{},
+		indexPicker:    &ProbabilisticIndexPicker{},
 		solutionsFound: 0,
 		maxSolutions:   1,
 		events:         NewPubsub(),
@@ -119,25 +119,31 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 	for _, domain := range domains {
 		s.queue.Enqueue(domain)
 	}
+
 	mutator := newMutator()
 
-	for {
-		if s.queue.IsEmpty() {
-			return mutator, true
-		}
-		s.events.Publish(PropagateRound)
+	success := evaluate(model, s.queue, mutator)
 
-		selectedDomain := s.queue.Dequeue()
+	return mutator, success
+}
+
+func evaluate(m Model, queue *SetQueue[*Domain], mutator *Mutator) bool {
+	for {
+		if queue.IsEmpty() {
+			return true
+		}
+
+		selectedDomain := queue.Dequeue()
 		targetDomains := Set[*Domain]{}
 
-		for _, constraintId := range model.domainConstraints[selectedDomain.id] {
-			constraint := model.constraints[constraintId]
+		for _, constraintId := range m.domainConstraints[selectedDomain.id] {
+			constraint := m.constraints[constraintId]
 
 			mutator.setActiveConstraintId(constraintId)
 			constraint.constraint.Propagate(mutator)
 
 			for _, targetDomainId := range constraint.linkedDomains {
-				targetDomains = targetDomains.Insert(model.Domains[targetDomainId])
+				targetDomains = targetDomains.Insert(m.Domains[targetDomainId])
 			}
 		}
 
@@ -150,27 +156,13 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 
 		for targetDomain := range targetDomains {
 			if targetDomain.IsInContradiction() {
-				s.queue.Reset()
-				return mutator, false
+				queue.Reset()
+				return false
 			}
 
 			if targetDomain.version() > versions[targetDomain.id] {
-				s.queue.Enqueue(targetDomain)
+				queue.Enqueue(targetDomain)
 			}
-		}
-	}
-}
-
-func evaluate(m Model, domain *Domain, mutator *Mutator) {
-	targetDomains := Set[*Domain]{}
-	for _, constraintId := range m.domainConstraints[domain.id] {
-		constraint := m.constraints[constraintId]
-
-		mutator.setActiveConstraintId(constraintId)
-		constraint.constraint.Propagate(mutator)
-
-		for _, targetDomainId := range constraint.linkedDomains {
-			targetDomains = targetDomains.Insert(m.Domains[targetDomainId])
 		}
 	}
 }

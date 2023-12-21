@@ -26,7 +26,7 @@ func TestSolver_FindAll(t *testing.T) {
 
 	solver.Solve(model)
 
-	if len(solutions) != 3 || solutions[0] != [2]int{2, 1} || solutions[1] != [2]int{3, 2} || solutions[2] != [2]int{3, 1} {
+	if len(solutions) != 3 || solutions[0] != [2]int{3, 1} || solutions[1] != [2]int{3, 2} || solutions[2] != [2]int{2, 1} {
 		t.Fatalf("wrong or missing solutions: %v", solutions)
 	}
 }

@@ -7,6 +7,8 @@ import (
 
 func BenchmarkSolvePixelMatrix(b *testing.B) {
 	solver := propagator.NewSolver(
+		propagator.SelectDomainsByMinEntropy(),
+		propagator.SelectIndicesProbabilistically(),
 		propagator.WithSeed(0),
 	)
 
