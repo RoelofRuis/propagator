@@ -17,7 +17,7 @@ func main() {
 	csp := propagator.NewProblem()
 
 	numQueens := 8
-	// numQueens := 250 // Seems feasible
+	//numQueens := 400
 
 	rows := make([]int, numQueens)
 	for i := 0; i < numQueens; i++ {

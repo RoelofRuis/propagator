@@ -110,7 +110,9 @@ func (d *Domain) IsHidden() bool {
 	return d.model.domainHidden[d.id]
 }
 
-func (d *Domain) canBePicked() bool {
+// CanBePicked returns whether this domain may be selected to be assigned a value.
+// The main use is in the picking algorithms to check available domains.
+func (d *Domain) CanBePicked() bool {
 	return d.IsUnassigned() && !d.IsHidden()
 }
 
@@ -140,6 +142,26 @@ func (d *Domain) minPriority() int {
 
 func (d *Domain) indices() []*index {
 	return d.model.domainIndices[d.id]
+}
+
+// numRelevantConstraints returns the number of constraints that this domain shares with other domains that are still
+// unassigned.
+func (d *Domain) numRelevantConstraints() int {
+	count := 0
+iterateConstraints:
+	for _, constraintId := range d.model.domainConstraints[d.id] {
+		constraint := d.model.constraints[constraintId]
+		for _, linkedId := range constraint.linkedDomains {
+			if linkedId == d.id {
+				continue
+			}
+			if len(d.model.domainAvailableIndices[linkedId]) > 1 {
+				count++
+				continue iterateConstraints
+			}
+		}
+	}
+	return count
 }
 
 func (d *Domain) entropy() float64 {

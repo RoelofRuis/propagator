@@ -77,12 +77,22 @@ func FindAllSolutions() SolverOption {
 
 // SelectDomainsByIndex select next Domains in order by index.
 func SelectDomainsByIndex() SolverOption {
-	return SelectDomainsBy(nextDomainByIndex)
+	return SelectDomainsBy(&IndexDomainPicker{})
 }
 
 // SelectDomainsAtRandom selects next Domains at random.
 func SelectDomainsAtRandom() SolverOption {
-	return SelectDomainsBy(nextDomainAtRandom)
+	return SelectDomainsBy(&RandomDomainPicker{})
+}
+
+// SelectDomainsByMinRemainingValues selects the next Domain with the minimum number of remaining free values.
+func SelectDomainsByMinRemainingValues() SolverOption {
+	return SelectDomainsBy(&MinRemainingValuesPicker{})
+}
+
+// SelectDomainsByMinEntropy selects next Domain by minimal Shannon entropy.
+func SelectDomainsByMinEntropy() SolverOption {
+	return SelectDomainsBy(&MinEntropyDomainPicker{})
 }
 
 // SelectDomainsBy sets the domain picker function.

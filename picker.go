@@ -7,14 +7,66 @@ import (
 )
 
 // domainPicker selects the next domain for which a value will be picked.
-type domainPicker func(m Model, rnd *rand.Rand) *Domain
+type domainPicker interface {
+	init(m Model, rnd *rand.Rand)
+	nextDomain(m Model) *Domain
+}
 
-// nextDomainByMinEntropy selects the next domain that has minimal Shannon entropy.
-func nextDomainByMinEntropy(m Model, rnd *rand.Rand) *Domain {
+// MinRemainingValuesPicker selects from the unassigned domains the domain that has the fewest legal values.
+// As a tie-breaker among the Minimum Remaining Values variables it picks the variable with the most constraints on
+// remaining variables.
+type MinRemainingValuesPicker struct {
+	candidates []*Domain
+}
+
+func (p *MinRemainingValuesPicker) init(m Model, rnd *rand.Rand) {
+	p.candidates = make([]*Domain, 0, len(m.Domains))
+}
+
+func (p *MinRemainingValuesPicker) nextDomain(m Model) *Domain {
+	p.candidates = p.candidates[:0]
+	minIndices := math.MaxInt
+	for _, domain := range m.Domains {
+		if !domain.CanBePicked() {
+			continue
+		}
+		numIndices := len(domain.AvailableIndices())
+		if numIndices < minIndices {
+			minIndices = numIndices
+			p.candidates = p.candidates[:0]
+		}
+		if numIndices == minIndices {
+			p.candidates = append(p.candidates, domain)
+		}
+	}
+
+	if len(p.candidates) < 2 {
+		return p.candidates[0]
+	}
+
+	maxConstraints := 0
+	var nextDomain *Domain
+	for _, candidate := range p.candidates {
+		constraintCount := candidate.numRelevantConstraints()
+		if constraintCount > maxConstraints {
+			maxConstraints = constraintCount
+			nextDomain = candidate
+		}
+	}
+
+	return nextDomain
+}
+
+// MinEntropyDomainPicker selects from the unassigned domains the domain that has minimal Shannon entropy.
+type MinEntropyDomainPicker struct{}
+
+func (p *MinEntropyDomainPicker) init(m Model, rnd *rand.Rand) {}
+
+func (p *MinEntropyDomainPicker) nextDomain(m Model) *Domain {
 	minEntropy := math.Inf(+1)
 	var nextDomain *Domain
 	for _, domain := range m.Domains {
-		if !domain.canBePicked() {
+		if !domain.CanBePicked() {
 			continue
 		}
 
@@ -28,10 +80,14 @@ func nextDomainByMinEntropy(m Model, rnd *rand.Rand) *Domain {
 	return nextDomain
 }
 
-// nextDomainByIndex selects the next unassigned domain from the list in the order as they were inserted into the model.
-func nextDomainByIndex(m Model, rnd *rand.Rand) *Domain {
+// IndexDomainPicker selects the next unassigned domain in the order they were inserted into the model.
+type IndexDomainPicker struct{}
+
+func (p *IndexDomainPicker) init(m Model, rnd *rand.Rand) {}
+
+func (p *IndexDomainPicker) nextDomain(m Model) *Domain {
 	for _, domain := range m.Domains {
-		if domain.canBePicked() {
+		if domain.CanBePicked() {
 			return domain
 		}
 	}
@@ -39,15 +95,24 @@ func nextDomainByIndex(m Model, rnd *rand.Rand) *Domain {
 	return nil
 }
 
-// nextDomainAtRandom selects the next domain at random.
-func nextDomainAtRandom(m Model, rnd *rand.Rand) *Domain {
+// RandomDomainPicker selects the next unassigned domain at random.
+type RandomDomainPicker struct {
+	// pointer to the random number generator
+	rnd *rand.Rand
+}
+
+func (p *RandomDomainPicker) init(m Model, rnd *rand.Rand) {
+	p.rnd = rnd
+}
+
+func (p *RandomDomainPicker) nextDomain(m Model) *Domain {
 	var validDomains []*Domain
 	for _, domain := range m.Domains {
-		if domain.canBePicked() {
+		if domain.CanBePicked() {
 			validDomains = append(validDomains, domain)
 		}
 	}
-	return validDomains[rnd.Intn(len(validDomains))]
+	return validDomains[p.rnd.Intn(len(validDomains))]
 }
 
 // indexPicker selects the next index from a given domain.
@@ -56,6 +121,18 @@ type indexPicker interface {
 	nextIndex(d *Domain) int
 }
 
+// LeastConstrainingValueIndexPicker selects the value that rules out the fewest values in the remaining variables.
+type LeastConstrainingValueIndexPicker struct {
+}
+
+func (p *LeastConstrainingValueIndexPicker) init(m Model, rnd *rand.Rand) {}
+
+func (p *LeastConstrainingValueIndexPicker) nextIndex(d *Domain) int {
+	panic("not implemented") // TODO: implement
+}
+
+// ProbabilisticIndexPicker selects the next index based on chance, taking into account the probabilities of the
+// individual values.
 type ProbabilisticIndexPicker struct {
 	// cumulative distribution function index
 	cdfIdx []int

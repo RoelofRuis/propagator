@@ -35,7 +35,7 @@ const (
 func NewSolver(options ...SolverOption) Solver {
 	solver := Solver{
 		rnd:            rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64()))),
-		domainPicker:   nextDomainByMinEntropy,
+		domainPicker:   &MinRemainingValuesPicker{},
 		indexPicker:    &ProbabilisticIndexPicker{},
 		solutionsFound: 0,
 		maxSolutions:   1,
@@ -53,6 +53,7 @@ func NewSolver(options ...SolverOption) Solver {
 func (s *Solver) Solve(model Model) bool {
 	s.events.Publish(Start)
 
+	s.domainPicker.init(model, s.rnd)
 	s.indexPicker.init(model, s.rnd)
 
 	mutations, success := s.propagate(model, model.Domains...)
@@ -82,7 +83,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 		}
 	}
 
-	domain := s.domainPicker(model, s.rnd)
+	domain := s.domainPicker.nextDomain(model)
 
 	if domain == nil {
 		return false

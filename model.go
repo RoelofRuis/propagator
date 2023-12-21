@@ -8,8 +8,10 @@ type Model struct {
 	// Domains allow access to the indices associated with the variables of this Model.
 	Domains []*Domain
 
+	// domainConstraints allows to look up the constraints that apply to a particular domain.
 	domainConstraints map[DomainId][]constraintId
-	constraints       []boundConstraint
+	// constraints holds all constraints indexed by their constraintId.
+	constraints []boundConstraint
 
 	domainHidden           []bool
 	domainNumIndices       []int
