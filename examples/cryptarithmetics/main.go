@@ -5,6 +5,7 @@ import (
 	"github.com/RoelofRuis/propagator"
 )
 
+// TODO: improve example with hidden variables
 func main() {
 	letters := []string{"S", "E", "N", "D", "M", "O", "R", "Y"}
 

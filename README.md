@@ -104,6 +104,9 @@ If you want to define variables that should take part in constraint propagation 
 propagator.AddHiddenVariableFromValues[int](csp, "v", []int{1,2,3,4,5,6,7,8,9})
 ```
 
+### Solving strategies
+
+Using the `SelectDomainsBy*` and `SelectIndicesBy*` `SolverOptions`, various solving strategies can be configured.
 
 ## Resources
 

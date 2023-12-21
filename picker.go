@@ -97,7 +97,6 @@ func (p *IndexDomainPicker) nextDomain(m Model) *Domain {
 
 // RandomDomainPicker selects the next unassigned domain at random.
 type RandomDomainPicker struct {
-	// pointer to the random number generator
 	rnd *rand.Rand
 }
 
@@ -131,14 +130,32 @@ func (p *LeastConstrainingValueIndexPicker) nextIndex(d *Domain) int {
 	panic("not implemented") // TODO: implement
 }
 
+// RandomIndexPicker selects the next index at random without using probability and priority information.
+type RandomIndexPicker struct {
+	rnd *rand.Rand
+}
+
+func (p *RandomIndexPicker) init(m Model, rnd *rand.Rand) {
+	p.rnd = rnd
+}
+
+func (p *RandomIndexPicker) nextIndex(d *Domain) int {
+	indices := d.AvailableIndices()
+	if len(indices) == 0 {
+		return -1
+	}
+	return indices[p.rnd.Intn(len(indices))]
+}
+
 // ProbabilisticIndexPicker selects the next index based on chance, taking into account the probabilities of the
-// individual values.
+// individual values. It also incorporates priority, picking only from the group of values with the smallest priority
+// value.
 type ProbabilisticIndexPicker struct {
 	// cumulative distribution function index
 	cdfIdx []int
 	// cumulative distribution function
 	cdf []float64
-	// pointer to the random number generator
+
 	rnd *rand.Rand
 }
 

@@ -36,7 +36,7 @@ func NewSolver(options ...SolverOption) Solver {
 	solver := Solver{
 		rnd:            rand.New(rand.NewSource(int64(new(maphash.Hash).Sum64()))),
 		domainPicker:   &MinRemainingValuesPicker{},
-		indexPicker:    &ProbabilisticIndexPicker{},
+		indexPicker:    &RandomIndexPicker{},
 		solutionsFound: 0,
 		maxSolutions:   1,
 		events:         NewPubsub(),
@@ -157,6 +157,20 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 			if targetDomain.version() > versions[targetDomain.id] {
 				s.queue.Enqueue(targetDomain)
 			}
+		}
+	}
+}
+
+func evaluate(m Model, domain *Domain) {
+	targetDomains := Set[*Domain]{}
+	for _, constraintId := range m.domainConstraints[domain.id] {
+		constraint := m.constraints[constraintId]
+
+		//mutator.setActiveConstraintId(constraintId)
+		//constraint.constraint.Propagate(mutator)
+
+		for _, targetDomainId := range constraint.linkedDomains {
+			targetDomains = targetDomains.Insert(m.Domains[targetDomainId])
 		}
 	}
 }

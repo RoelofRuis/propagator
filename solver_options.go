@@ -75,6 +75,25 @@ func FindAllSolutions() SolverOption {
 	}
 }
 
+// SelectIndicesAtRandom selects next indices at random from the available indices.
+// This picker does not take into account any probability and priority values.
+func SelectIndicesAtRandom() SolverOption {
+	return SelectIndicesBy(&RandomIndexPicker{})
+}
+
+// SelectIndicesProbabilistically selects next indices based on chance using the index probabilities. It also takes into
+// account the priority values, selecting only from the group indices with the lowest priority value.
+func SelectIndicesProbabilistically() SolverOption {
+	return SelectIndicesBy(&ProbabilisticIndexPicker{})
+}
+
+// SelectIndicesBy sets the index picker.
+func SelectIndicesBy(picker indexPicker) SolverOption {
+	return func(s *Solver) {
+		s.indexPicker = picker
+	}
+}
+
 // SelectDomainsByIndex select next Domains in order by index.
 func SelectDomainsByIndex() SolverOption {
 	return SelectDomainsBy(&IndexDomainPicker{})
@@ -95,7 +114,7 @@ func SelectDomainsByMinEntropy() SolverOption {
 	return SelectDomainsBy(&MinEntropyDomainPicker{})
 }
 
-// SelectDomainsBy sets the domain picker function.
+// SelectDomainsBy sets the domain picker.
 func SelectDomainsBy(picker domainPicker) SolverOption {
 	return func(s *Solver) {
 		s.domainPicker = picker
