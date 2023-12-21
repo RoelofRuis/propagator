@@ -94,6 +94,17 @@ if (!solved) {
 }
 ```
 
+## Advanced Usage
+
+### Hidden variables
+
+If you want to define variables that should take part in constraint propagation but should not be picked and solved for (for instance when using the domain values as a constraint to the problem), you can mark these variables as hidden.
+
+```
+propagator.AddHiddenVariableFromValues[int](csp, "v", []int{1,2,3,4,5,6,7,8,9})
+```
+
+
 ## Resources
 
 Excellent overview of constraint satisfaction problems: http://aima.cs.berkeley.edu/newchap05.pdf
