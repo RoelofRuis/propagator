@@ -40,7 +40,10 @@ func (p *MinRemainingValuesPicker) nextDomain(m Model) *Domain {
 		}
 	}
 
-	if len(p.candidates) < 2 {
+	if len(p.candidates) == 0 {
+		return nil
+	}
+	if len(p.candidates) == 1 {
 		return p.candidates[0]
 	}
 

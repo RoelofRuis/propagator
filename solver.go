@@ -161,13 +161,13 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 	}
 }
 
-func evaluate(m Model, domain *Domain) {
+func evaluate(m Model, domain *Domain, mutator *Mutator) {
 	targetDomains := Set[*Domain]{}
 	for _, constraintId := range m.domainConstraints[domain.id] {
 		constraint := m.constraints[constraintId]
 
-		//mutator.setActiveConstraintId(constraintId)
-		//constraint.constraint.Propagate(mutator)
+		mutator.setActiveConstraintId(constraintId)
+		constraint.constraint.Propagate(mutator)
 
 		for _, targetDomainId := range constraint.linkedDomains {
 			targetDomains = targetDomains.Insert(m.Domains[targetDomainId])
