@@ -1,6 +1,7 @@
 package propagator
 
 import (
+	"github.com/RoelofRuis/ds"
 	"hash/maphash"
 	"math/rand"
 )
@@ -13,7 +14,7 @@ type Solver struct {
 	maxSolutions   int
 	solutionsFound int
 
-	queue  *SetQueue[*Domain]
+	queue  *ds.SetQueue[*Domain]
 	events *PubSub
 }
 
@@ -40,7 +41,7 @@ func NewSolver(options ...SolverOption) Solver {
 		solutionsFound: 0,
 		maxSolutions:   1,
 		events:         NewPubsub(),
-		queue:          NewSetQueue[*Domain](), // domain ids
+		queue:          ds.NewSetQueue[*Domain](), // domain ids
 	}
 	for _, opt := range options {
 		opt(&solver)
@@ -127,14 +128,14 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 	return mutator, success
 }
 
-func evaluate(m Model, queue *SetQueue[*Domain], mutator *Mutator) bool {
+func evaluate(m Model, queue *ds.SetQueue[*Domain], mutator *Mutator) bool {
 	for {
 		if queue.IsEmpty() {
 			return true
 		}
 
 		selectedDomain := queue.Dequeue()
-		targetDomains := Set[*Domain]{}
+		targetDomains := ds.NewSet[*Domain]()
 
 		for _, constraintId := range m.domainConstraints[selectedDomain.id] {
 			constraint := m.constraints[constraintId]
@@ -143,18 +144,18 @@ func evaluate(m Model, queue *SetQueue[*Domain], mutator *Mutator) bool {
 			constraint.constraint.Propagate(mutator)
 
 			for _, targetDomainId := range constraint.linkedDomains {
-				targetDomains = targetDomains.Insert(m.Domains[targetDomainId])
+				targetDomains.Insert(m.Domains[targetDomainId])
 			}
 		}
 
 		versions := make(map[DomainId]int)
-		for targetDomain := range targetDomains {
+		for targetDomain := range *targetDomains {
 			versions[targetDomain.id] = targetDomain.version()
 		}
 
 		mutator.apply()
 
-		for targetDomain := range targetDomains {
+		for targetDomain := range *targetDomains {
 			if targetDomain.IsInContradiction() {
 				queue.Reset()
 				return false
