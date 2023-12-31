@@ -106,9 +106,10 @@ propagator.AddHiddenVariableFromValues[int](csp, "v", []int{1,2,3,4,5,6,7,8,9})
 
 ### Solving strategies
 
-Using the `SelectDomainsBy*` and `SelectIndicesBy*` `SolverOptions`, various solving strategies can be configured.
+Using the `SelectDomainsBy*` and `SelectIndicesBy*` solver options, various solving strategies can be configured.
 
 ## Resources
 
 Excellent overview of constraint satisfaction problems: http://aima.cs.berkeley.edu/newchap05.pdf
+
 Slideshow with summary of most important points: https://www.cse.unsw.edu.au/~cs3411/18s1/lect/1page/wk08_CSP.pdf
