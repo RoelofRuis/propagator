@@ -130,11 +130,11 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 
 func evaluate(m Model, queue *ds.SetQueue[*Domain], mutator *Mutator) bool {
 	for {
-		if queue.IsEmpty() {
+		selectedDomain, hasNext := queue.Dequeue()
+		if !hasNext {
 			return true
 		}
 
-		selectedDomain := queue.Dequeue()
 		targetDomains := ds.NewSet[*Domain]()
 
 		for _, constraintId := range m.domainConstraints[selectedDomain.id] {
@@ -149,13 +149,13 @@ func evaluate(m Model, queue *ds.SetQueue[*Domain], mutator *Mutator) bool {
 		}
 
 		versions := make(map[DomainId]int)
-		for targetDomain := range *targetDomains {
+		for targetDomain := range targetDomains {
 			versions[targetDomain.id] = targetDomain.version()
 		}
 
 		mutator.apply()
 
-		for targetDomain := range *targetDomains {
+		for targetDomain := range targetDomains {
 			if targetDomain.IsInContradiction() {
 				queue.Reset()
 				return false

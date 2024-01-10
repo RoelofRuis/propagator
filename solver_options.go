@@ -39,7 +39,7 @@ func LogInfo() SolverOption {
 			log.Printf("[SOLVER] Start propagating constraints\n")
 		})
 		s.events.Subscribe(PropagateRound, func() {
-			log.Printf("[SOLVER] Propagate round [Queue size %d]\n", s.queue.Length())
+			log.Printf("[SOLVER] Propagate round [Queue size %d]\n", s.queue.Size())
 		})
 	}
 }
