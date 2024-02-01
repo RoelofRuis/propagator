@@ -2,7 +2,6 @@ package propagator
 
 import (
 	"math"
-	"strconv"
 )
 
 // Probability is a floating point value indicating the chance that an index will be picked.
@@ -14,7 +13,7 @@ type Priority = uint32
 
 var (
 	indexFactorySingleton = &indexFactory{
-		indices:     make(map[string]*index),
+		indices:     make(map[packedProbPrio]*index),
 		floatBuffer: make([]byte, 0, 24),
 	}
 	bannedIndex = &index{
@@ -27,9 +26,8 @@ var (
 )
 
 type indexFactory struct {
-	hash        string
 	floatBuffer []byte
-	indices     map[string]*index
+	indices     map[packedProbPrio]*index
 }
 
 // create creates an index from a given probability and priority
@@ -38,12 +36,9 @@ func (f *indexFactory) create(probability Probability, priority Priority) *index
 		return bannedIndex
 	}
 
-	// Optimized to reduce memory and cpu usage. FIXME: is this the best way to get this hash?
-	f.hash = ""
-	f.hash += string(strconv.AppendFloat(f.floatBuffer, float64(probability), 'f', -1, 64))
-	f.hash += strconv.FormatInt(int64(priority), 10)
+	packed := packPriorityProbability(probability, priority)
 
-	storedIndex, has := f.indices[f.hash]
+	storedIndex, has := f.indices[packed]
 	if !has {
 		storedIndex = &index{
 			probabilityModifiers: map[constraintId]Probability{-1: probability},
@@ -52,7 +47,7 @@ func (f *indexFactory) create(probability Probability, priority Priority) *index
 			priority:             priority,
 			isBanned:             false,
 		}
-		f.indices[f.hash] = storedIndex
+		f.indices[packed] = storedIndex
 	}
 	return storedIndex
 }
@@ -133,16 +128,16 @@ func (i *index) adjust(constraint constraintId, probability Probability, priorit
 	return adjustedIndex, true
 }
 
-type packedPriorityProbability int64
+type packedProbPrio int64
 
-func packPriorityProbability(probability float32, priority uint32) packedPriorityProbability {
+func packPriorityProbability(probability float32, priority uint32) packedProbPrio {
 	probabilityBits := math.Float32bits(probability)
 	priorityBits := priority
 
-	return packedPriorityProbability(uint64(probabilityBits)<<32 | uint64(priorityBits))
+	return packedProbPrio(uint64(probabilityBits)<<32 | uint64(priorityBits))
 }
 
-func unpackPriorityProbability(p packedPriorityProbability) (float32, uint32) {
+func unpackPriorityProbability(p packedProbPrio) (float32, uint32) {
 	probabilityBits := uint32(p >> 32)
 	priorityBits := uint32(p & 0xFFFFFFFF)
 
