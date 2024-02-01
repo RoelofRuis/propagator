@@ -179,7 +179,7 @@ func (p *ProbabilisticIndexPicker) nextIndex(d *Domain) int {
 	prev := float32(0.0)
 	for i := 0; i < d.numIndices(); i++ {
 		idx := d.getIndex(i)
-		if idx.isBanned || idx.priority != minPriority {
+		if idx == nil || idx.priority != minPriority {
 			continue
 		}
 

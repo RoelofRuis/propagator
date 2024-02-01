@@ -84,6 +84,10 @@ func (u *Mutation) apply() {
 	u.reverseIndices = make([]reverseIndex, 0, len(u.indices))
 	for _, i := range u.indices {
 		oldIndex := u.domain.getIndex(i)
+		if oldIndex == nil {
+			continue
+		}
+
 		newIndex, isUpdated := oldIndex.adjust(
 			u.constraintId,
 			u.probability,

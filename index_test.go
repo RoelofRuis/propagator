@@ -20,9 +20,7 @@ func TestCreate(t *testing.T) {
 
 func TestNewIndex(t *testing.T) {
 	i := indexFactorySingleton.create(1.0, 0)
-	if i.isBanned {
-		t.Fatalf("index should not be banned")
-	}
+
 	if i.probability != 1.0 {
 		t.Fatalf("index should be 1.0")
 	}

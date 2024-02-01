@@ -176,7 +176,7 @@ func (d *Domain) entropy() float64 {
 
 	entropy := 0.0
 	for _, idx := range d.indices() {
-		if idx.isBanned || idx.priority != d.minPriority() {
+		if idx == nil || idx.priority != d.minPriority() {
 			continue
 		}
 		weightedProb := idx.probability / d.sumProbability()
@@ -196,16 +196,16 @@ func (d *Domain) update() {
 	d.model.domainAvailableIndices[d.id] = d.model.domainAvailableIndices[d.id][:0]
 
 	for i, idx := range d.model.domainIndices[d.id] {
-		if !idx.isBanned {
+		if idx != nil {
 			d.model.domainAvailableIndices[d.id] = append(d.model.domainAvailableIndices[d.id], i)
 		}
-		if !idx.isBanned && idx.priority < d.model.domainMinPriority[d.id] {
+		if idx != nil && idx.priority < d.model.domainMinPriority[d.id] {
 			d.model.domainMinPriority[d.id] = idx.priority
 		}
 	}
 
 	for _, idx := range d.model.domainIndices[d.id] {
-		if !idx.isBanned && idx.priority == d.model.domainMinPriority[d.id] {
+		if idx != nil && idx.priority == d.model.domainMinPriority[d.id] {
 			d.model.domainSumProbability[d.id] += idx.probability
 		}
 	}

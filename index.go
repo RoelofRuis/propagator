@@ -13,21 +13,13 @@ type Priority = uint32
 
 var (
 	indexFactorySingleton = &indexFactory{
-		indices:     make(map[packedProbPrio]*index),
-		floatBuffer: make([]byte, 0, 24),
+		indices: make(map[packedProbPrio]*index),
 	}
-	bannedIndex = &index{
-		probabilityModifiers: nil,
-		priorityModifiers:    nil,
-		probability:          0.0,
-		priority:             math.MaxUint32,
-		isBanned:             true,
-	}
+	bannedIndex *index = nil
 )
 
 type indexFactory struct {
-	floatBuffer []byte
-	indices     map[packedProbPrio]*index
+	indices map[packedProbPrio]*index
 }
 
 // create creates an index from a given probability and priority
@@ -45,7 +37,6 @@ func (f *indexFactory) create(probability Probability, priority Priority) *index
 			priorityModifiers:    map[constraintId]Priority{-1: priority},
 			probability:          probability,
 			priority:             priority,
-			isBanned:             false,
 		}
 		f.indices[packed] = storedIndex
 	}
@@ -63,17 +54,11 @@ type index struct {
 	probability Probability
 	// Sum of priority modifiers
 	priority Priority
-	// Whether the index is currently banned
-	isBanned bool
 }
 
 // adjust adjusts this index according to the given probability and priority for constraintId. It returns the new index
 // and whether it was possible at all to adjust this index.
 func (i *index) adjust(constraint constraintId, probability Probability, priority Priority) (*index, bool) {
-	if i.isBanned {
-		return i, false
-	}
-
 	if probability == 0.0 {
 		return bannedIndex, true
 	}
@@ -111,7 +96,10 @@ func (i *index) adjust(constraint constraintId, probability Probability, priorit
 		}
 		adjustedIndex.probabilityModifiers[constraint] = probability
 		adjustedIndex.probability = newProbability * probability
-		adjustedIndex.isBanned = math.Abs(float64(adjustedIndex.probability)) < 1e-10
+		if math.Abs(float64(adjustedIndex.probability)) < 1e-10 {
+			adjustedIndex = nil
+			shouldUpdatePriority = false
+		}
 	}
 
 	if shouldUpdatePriority {
