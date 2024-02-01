@@ -37,8 +37,8 @@ func NewProblem() *Problem {
 
 // DomainValue represents the initialization data for a domain value.
 type DomainValue[T comparable] struct {
-	Priority    int
-	Probability float64
+	Priority    Priority
+	Probability Probability
 	Value       T
 }
 
@@ -50,8 +50,8 @@ func (c *Problem) Model() Model {
 	domainNumIndices := make([]int, numDomains)
 	domainEntropy := make([]float64, numDomains)
 	domainVersions := make([]int, numDomains)
-	domainSumProbability := make([]float64, numDomains)
-	domainMinPriority := make([]int, numDomains)
+	domainSumProbability := make([]Probability, numDomains)
+	domainMinPriority := make([]Priority, numDomains)
 
 	for i := 0; i < numDomains; i++ {
 		domainNumIndices[i] = len(c.domainIndices[i])

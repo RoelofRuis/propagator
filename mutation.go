@@ -63,8 +63,8 @@ func (m *Mutator) revertPrevious() {
 type Mutation struct {
 	domain      *Domain
 	indices     []int
-	probability float64
-	priority    int
+	probability Probability
+	priority    Priority
 
 	constraintId   constraintId
 	reverseIndices []reverseIndex

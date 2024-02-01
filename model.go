@@ -18,8 +18,8 @@ type Model struct {
 	domainNames            []string
 	domainEntropy          []float64
 	domainVersions         []int
-	domainSumProbability   []float64
-	domainMinPriority      []int
+	domainSumProbability   []Probability
+	domainMinPriority      []Priority
 	domainIndices          [][]*index
 	domainAvailableIndices [][]int
 

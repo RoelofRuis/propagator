@@ -157,7 +157,7 @@ type ProbabilisticIndexPicker struct {
 	// cumulative distribution function index
 	cdfIdx []int
 	// cumulative distribution function
-	cdf []float64
+	cdf []Probability
 
 	rnd *rand.Rand
 }
@@ -165,7 +165,7 @@ type ProbabilisticIndexPicker struct {
 func (p *ProbabilisticIndexPicker) init(m Model, rnd *rand.Rand) {
 	maxIndices := slices.Max(m.domainNumIndices)
 	p.cdfIdx = make([]int, 0, maxIndices)
-	p.cdf = make([]float64, 0, maxIndices)
+	p.cdf = make([]Probability, 0, maxIndices)
 	p.rnd = rnd
 }
 
@@ -175,8 +175,8 @@ func (p *ProbabilisticIndexPicker) nextIndex(d *Domain) int {
 
 	minPriority := d.minPriority()
 
-	probSum := 0.0
-	prev := 0.0
+	probSum := float32(0.0)
+	prev := float32(0.0)
 	for i := 0; i < d.numIndices(); i++ {
 		idx := d.getIndex(i)
 		if idx.isBanned || idx.priority != minPriority {
@@ -194,7 +194,7 @@ func (p *ProbabilisticIndexPicker) nextIndex(d *Domain) int {
 		return -1
 	}
 
-	r := p.rnd.Float64() * probSum
+	r := p.rnd.Float32() * probSum
 	idx := 0
 	for r > p.cdf[idx] {
 		idx++

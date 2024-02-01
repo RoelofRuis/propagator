@@ -43,17 +43,17 @@ func (d *Domain) Contradict() Mutation {
 }
 
 // UpdatePriority creates a Mutation that updates the priority for the given indices.
-func (d *Domain) UpdatePriority(value int, indices ...int) Mutation {
+func (d *Domain) UpdatePriority(value Priority, indices ...int) Mutation {
 	return d.Update(1.0, value, indices...)
 }
 
 // UpdateProbability creates a Mutation that updates the probability for the given indices.
-func (d *Domain) UpdateProbability(factor float64, indices ...int) Mutation {
+func (d *Domain) UpdateProbability(factor Probability, indices ...int) Mutation {
 	return d.Update(factor, 0, indices...)
 }
 
 // Update creates a Mutation that updates indices with the given probability and priority.
-func (d *Domain) Update(probabilityFactor float64, priority int, indices ...int) Mutation {
+func (d *Domain) Update(factor Probability, priority Priority, indices ...int) Mutation {
 	if len(indices) == 0 {
 		return DoNothing
 	}
@@ -64,7 +64,7 @@ func (d *Domain) Update(probabilityFactor float64, priority int, indices ...int)
 	return Mutation{
 		domain:      d,
 		indices:     mutationIndices,
-		probability: probabilityFactor,
+		probability: factor,
 		priority:    priority,
 	}
 }
@@ -85,12 +85,12 @@ func (d *Domain) IsInContradiction() bool {
 }
 
 // IndexPriority returns the priority of the given index.
-func (d *Domain) IndexPriority(index int) int {
+func (d *Domain) IndexPriority(index int) Priority {
 	return d.indices()[index].priority
 }
 
 // IndexProbability returns the probability of the given index.
-func (d *Domain) IndexProbability(index int) float64 {
+func (d *Domain) IndexProbability(index int) Probability {
 	return d.indices()[index].probability
 }
 
@@ -132,11 +132,11 @@ func (d *Domain) setIndex(i int, idx *index) {
 	d.model.domainIndices[d.id][i] = idx
 }
 
-func (d *Domain) sumProbability() float64 {
+func (d *Domain) sumProbability() Probability {
 	return d.model.domainSumProbability[d.id]
 }
 
-func (d *Domain) minPriority() int {
+func (d *Domain) minPriority() Priority {
 	return d.model.domainMinPriority[d.id]
 }
 
@@ -180,7 +180,7 @@ func (d *Domain) entropy() float64 {
 			continue
 		}
 		weightedProb := idx.probability / d.sumProbability()
-		entropy += weightedProb * math.Log2(weightedProb)
+		entropy += float64(weightedProb) * math.Log2(float64(weightedProb))
 	}
 	d.model.domainEntropy[d.id] = -entropy
 	return d.model.domainEntropy[d.id]
@@ -191,7 +191,7 @@ func (d *Domain) entropy() float64 {
 func (d *Domain) update() {
 	d.model.domainVersions[d.id]++
 	d.model.domainSumProbability[d.id] = 0.0
-	d.model.domainMinPriority[d.id] = math.MaxInt
+	d.model.domainMinPriority[d.id] = math.MaxUint32
 	d.model.domainEntropy[d.id] = math.Inf(+1)
 	d.model.domainAvailableIndices[d.id] = d.model.domainAvailableIndices[d.id][:0]
 

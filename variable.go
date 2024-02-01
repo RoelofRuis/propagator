@@ -77,20 +77,20 @@ func (v *Variable[T]) GetAssignedValue() T {
 }
 
 // UpdatePriorityByValue creates a Mutation that updates the priority of the index associated with the given value.
-func (v *Variable[T]) UpdatePriorityByValue(priority int, value T) Mutation {
+func (v *Variable[T]) UpdatePriorityByValue(priority Priority, value T) Mutation {
 	return v.UpdateByValue(1.0, priority, value)
 }
 
 // UpdateProbabilityByValue creates a Mutation that updates the probability of the index associated with the given value.
-func (v *Variable[T]) UpdateProbabilityByValue(factory float64, value T) Mutation {
+func (v *Variable[T]) UpdateProbabilityByValue(factory Probability, value T) Mutation {
 	return v.UpdateByValue(factory, 0, value)
 }
 
 // UpdateByValue creates a Mutation that updates the probability and priority of the index associated with the given value.
-func (v *Variable[T]) UpdateByValue(probabilityFactor float64, priority int, value T) Mutation {
+func (v *Variable[T]) UpdateByValue(factor Probability, priority Priority, value T) Mutation {
 	for _, availableIndex := range v.AvailableIndices() {
 		if v.values[availableIndex] == value {
-			return v.Update(probabilityFactor, priority, availableIndex)
+			return v.Update(factor, priority, availableIndex)
 		}
 	}
 	return DoNothing
