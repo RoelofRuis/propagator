@@ -30,9 +30,8 @@ func (f *indexFactory) create(probability Probability, priority Priority) *index
 	storedIndex, has := f.indices[probAndPrio]
 	if !has {
 		storedIndex = &index{
-			probabilityModifiers: map[constraintId]Probability{-1: probability},
-			priorityModifiers:    map[constraintId]Priority{-1: priority},
-			probAndPrio:          probAndPrio,
+			modifiers:   map[constraintId]packedProbPrio{-1: probAndPrio},
+			probAndPrio: probAndPrio,
 		}
 		f.indices[probAndPrio] = storedIndex
 	}
@@ -40,11 +39,10 @@ func (f *indexFactory) create(probability Probability, priority Priority) *index
 }
 
 // index stores the probability and priority of a single index in a domain.
-// The -1 key in both maps serves as the respective base probability and base priority. These are fixed and cannot be
-// modified by a constraint.
 type index struct {
-	probabilityModifiers map[constraintId]Probability
-	priorityModifiers    map[constraintId]Priority
+	// modifiers contains the probability and priority for each constraint if it applies. Furthermore, it contains the
+	// default probability and priority with key -1. These are fixed and cannot be modified.
+	modifiers map[constraintId]packedProbPrio
 
 	// Product of probability modifiers in the lower 32 bits and sum of priority modifiers in the higher 32 bits.
 	probAndPrio packedProbPrio
@@ -58,57 +56,51 @@ func (i *index) adjust(constraint constraintId, probability Probability, priorit
 		return nil, true
 	}
 
-	currentProbability, has := i.probabilityModifiers[constraint]
-	if !has {
-		currentProbability = 1.0
+	currentProbability := Probability(1.0)
+	currentPriority := Priority(0)
+	currentProbAndPrio, has := i.modifiers[constraint]
+	if has {
+		currentProbability, currentPriority = unpackPriorityProbability(currentProbAndPrio)
 	}
-	shouldUpdateProbability := probability < currentProbability
 
-	currentPriority, has := i.priorityModifiers[constraint]
-	if !has {
-		currentPriority = 0
-	}
+	shouldUpdateProbability := probability < currentProbability
 	shouldUpdatePriority := priority > currentPriority
 
 	if !shouldUpdateProbability && !shouldUpdatePriority {
 		return i, false
 	}
 
-	// FIXME: this is memory consuming
 	adjustedIndex := &index{
-		probabilityModifiers: i.probabilityModifiers,
-		priorityModifiers:    i.priorityModifiers,
+		modifiers: make(map[constraintId]packedProbPrio),
 	}
 
-	var adjustedProbability Probability
-	var adjustedPriority Priority
+	adjustedProbability := Probability(1.0)
+	adjustedPriority := Priority(0)
+
+	prodProbability := Probability(1.0)
+	sumPriority := Priority(0)
+	for k, modifier := range i.modifiers {
+		adjustedIndex.modifiers[k] = modifier
+		probability, priority := unpackPriorityProbability(modifier)
+		prodProbability = prodProbability * probability
+		sumPriority = sumPriority + priority
+	}
 
 	if shouldUpdateProbability {
-		adjustedIndex.probabilityModifiers = make(map[constraintId]Probability)
-		newProbability := float32(1.0)
-		for k, prob := range i.probabilityModifiers {
-			adjustedIndex.probabilityModifiers[k] = prob
-			newProbability = newProbability * prob
-		}
-		adjustedIndex.probabilityModifiers[constraint] = probability
-		adjustedProbability = newProbability * probability
-		if math.Abs(float64(adjustedProbability)) < 1e-10 {
+		prodProbability = prodProbability * probability
+		if math.Abs(float64(prodProbability)) < 1e-10 {
 			return nil, true
 		}
+		adjustedProbability = probability
 	}
 
 	if shouldUpdatePriority {
-		adjustedIndex.priorityModifiers = make(map[constraintId]Priority)
-		newPriority := uint32(0)
-		for k, prio := range i.priorityModifiers {
-			adjustedIndex.priorityModifiers[k] = prio
-			newPriority = newPriority + prio
-		}
-		adjustedIndex.priorityModifiers[constraint] = priority
-		adjustedPriority = newPriority + priority
+		sumPriority = sumPriority + priority
+		adjustedPriority = priority
 	}
 
-	adjustedIndex.probAndPrio = packPriorityProbability(adjustedProbability, adjustedPriority)
+	adjustedIndex.modifiers[constraint] = packPriorityProbability(adjustedProbability, adjustedPriority)
+	adjustedIndex.probAndPrio = packPriorityProbability(prodProbability, sumPriority)
 
 	return adjustedIndex, true
 }
