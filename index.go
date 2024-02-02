@@ -63,6 +63,8 @@ func (i *index) adjust(constraint constraintId, probability Probability, priorit
 		currentProbability, currentPriority = unpackPriorityProbability(currentProbAndPrio)
 	}
 
+	// TODO: think about this: what does it mean if it has/!has the constraint? Is there some optimization here?
+
 	shouldUpdateProbability := probability < currentProbability
 	shouldUpdatePriority := priority > currentPriority
 
