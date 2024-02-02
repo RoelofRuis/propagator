@@ -86,12 +86,14 @@ func (d *Domain) IsInContradiction() bool {
 
 // IndexPriority returns the priority of the given index.
 func (d *Domain) IndexPriority(index int) Priority {
-	return d.indices()[index].priority
+	_, priority := unpackPriorityProbability(d.indices()[index].probAndPrio)
+	return priority
 }
 
 // IndexProbability returns the probability of the given index.
 func (d *Domain) IndexProbability(index int) Probability {
-	return d.indices()[index].probability
+	probability, _ := unpackPriorityProbability(d.indices()[index].probAndPrio)
+	return probability
 }
 
 // Name returns the name of this domain.
@@ -176,10 +178,17 @@ func (d *Domain) entropy() float64 {
 
 	entropy := 0.0
 	for _, idx := range d.indices() {
-		if idx == nil || idx.priority != d.minPriority() {
+		if idx == nil {
 			continue
 		}
-		weightedProb := idx.probability / d.sumProbability()
+
+		idxProbability, idxPriority := unpackPriorityProbability(idx.probAndPrio)
+
+		if idxPriority != d.minPriority() {
+			continue
+		}
+
+		weightedProb := idxProbability / d.sumProbability()
 		entropy += float64(weightedProb) * math.Log2(float64(weightedProb))
 	}
 	d.model.domainEntropy[d.id] = -entropy
@@ -198,15 +207,22 @@ func (d *Domain) update() {
 	for i, idx := range d.model.domainIndices[d.id] {
 		if idx != nil {
 			d.model.domainAvailableIndices[d.id] = append(d.model.domainAvailableIndices[d.id], i)
-		}
-		if idx != nil && idx.priority < d.model.domainMinPriority[d.id] {
-			d.model.domainMinPriority[d.id] = idx.priority
+
+			_, idxPriority := unpackPriorityProbability(idx.probAndPrio)
+
+			if idxPriority < d.model.domainMinPriority[d.id] {
+				d.model.domainMinPriority[d.id] = idxPriority
+			}
 		}
 	}
 
 	for _, idx := range d.model.domainIndices[d.id] {
-		if idx != nil && idx.priority == d.model.domainMinPriority[d.id] {
-			d.model.domainSumProbability[d.id] += idx.probability
+		if idx != nil {
+			idxProbability, idxPriority := unpackPriorityProbability(idx.probAndPrio)
+
+			if idxPriority == d.model.domainMinPriority[d.id] {
+				d.model.domainSumProbability[d.id] += idxProbability
+			}
 		}
 	}
 }

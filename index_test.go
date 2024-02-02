@@ -21,8 +21,14 @@ func TestCreate(t *testing.T) {
 func TestNewIndex(t *testing.T) {
 	i := indexFactorySingleton.create(1.0, 0)
 
-	if i.probability != 1.0 {
-		t.Fatalf("index should be 1.0")
+	probability, priority := unpackPriorityProbability(i.probAndPrio)
+
+	if probability != 1.0 {
+		t.Fatalf("probability should be 1.0")
+	}
+
+	if priority != 0 {
+		t.Fatalf("priority should be 0")
 	}
 }
 

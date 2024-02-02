@@ -11,12 +11,9 @@ type Probability = float32
 // Lower values precede higher values, 0 being the lowest possible.
 type Priority = uint32
 
-var (
-	indexFactorySingleton = &indexFactory{
-		indices: make(map[packedProbPrio]*index),
-	}
-	bannedIndex *index = nil
-)
+var indexFactorySingleton = &indexFactory{
+	indices: make(map[packedProbPrio]*index),
+}
 
 type indexFactory struct {
 	indices map[packedProbPrio]*index
@@ -25,20 +22,19 @@ type indexFactory struct {
 // create creates an index from a given probability and priority
 func (f *indexFactory) create(probability Probability, priority Priority) *index {
 	if math.Abs(float64(probability)) < 1e-10 {
-		return bannedIndex
+		return nil
 	}
 
-	packed := packPriorityProbability(probability, priority)
+	probAndPrio := packPriorityProbability(probability, priority)
 
-	storedIndex, has := f.indices[packed]
+	storedIndex, has := f.indices[probAndPrio]
 	if !has {
 		storedIndex = &index{
 			probabilityModifiers: map[constraintId]Probability{-1: probability},
 			priorityModifiers:    map[constraintId]Priority{-1: priority},
-			probability:          probability,
-			priority:             priority,
+			probAndPrio:          probAndPrio,
 		}
-		f.indices[packed] = storedIndex
+		f.indices[probAndPrio] = storedIndex
 	}
 	return storedIndex
 }
@@ -50,17 +46,16 @@ type index struct {
 	probabilityModifiers map[constraintId]Probability
 	priorityModifiers    map[constraintId]Priority
 
-	// Product of probability modifiers
-	probability Probability
-	// Sum of priority modifiers
-	priority Priority
+	// Product of probability modifiers in the lower 32 bits and sum of priority modifiers in the higher 32 bits.
+	probAndPrio packedProbPrio
 }
 
 // adjust adjusts this index according to the given probability and priority for constraintId. It returns the new index
-// and whether it was possible at all to adjust this index.
+// and whether it was possible at all to adjust this index. Will return a nil index if it is banned (has a probability
+// of zero).
 func (i *index) adjust(constraint constraintId, probability Probability, priority Priority) (*index, bool) {
 	if probability == 0.0 {
-		return bannedIndex, true
+		return nil, true
 	}
 
 	currentProbability, has := i.probabilityModifiers[constraint]
@@ -83,9 +78,10 @@ func (i *index) adjust(constraint constraintId, probability Probability, priorit
 	adjustedIndex := &index{
 		probabilityModifiers: i.probabilityModifiers,
 		priorityModifiers:    i.priorityModifiers,
-		probability:          i.probability,
-		priority:             i.priority,
 	}
+
+	var adjustedProbability Probability
+	var adjustedPriority Priority
 
 	if shouldUpdateProbability {
 		adjustedIndex.probabilityModifiers = make(map[constraintId]Probability)
@@ -95,10 +91,9 @@ func (i *index) adjust(constraint constraintId, probability Probability, priorit
 			newProbability = newProbability * prob
 		}
 		adjustedIndex.probabilityModifiers[constraint] = probability
-		adjustedIndex.probability = newProbability * probability
-		if math.Abs(float64(adjustedIndex.probability)) < 1e-10 {
-			adjustedIndex = nil
-			shouldUpdatePriority = false
+		adjustedProbability = newProbability * probability
+		if math.Abs(float64(adjustedProbability)) < 1e-10 {
+			return nil, true
 		}
 	}
 
@@ -110,22 +105,24 @@ func (i *index) adjust(constraint constraintId, probability Probability, priorit
 			newPriority = newPriority + prio
 		}
 		adjustedIndex.priorityModifiers[constraint] = priority
-		adjustedIndex.priority = newPriority + priority
+		adjustedPriority = newPriority + priority
 	}
+
+	adjustedIndex.probAndPrio = packPriorityProbability(adjustedProbability, adjustedPriority)
 
 	return adjustedIndex, true
 }
 
 type packedProbPrio int64
 
-func packPriorityProbability(probability float32, priority uint32) packedProbPrio {
+func packPriorityProbability(probability Probability, priority Priority) packedProbPrio {
 	probabilityBits := math.Float32bits(probability)
 	priorityBits := priority
 
 	return packedProbPrio(uint64(probabilityBits)<<32 | uint64(priorityBits))
 }
 
-func unpackPriorityProbability(p packedProbPrio) (float32, uint32) {
+func unpackPriorityProbability(p packedProbPrio) (Probability, Priority) {
 	probabilityBits := uint32(p >> 32)
 	priorityBits := uint32(p & 0xFFFFFFFF)
 

@@ -179,15 +179,21 @@ func (p *ProbabilisticIndexPicker) nextIndex(d *Domain) int {
 	prev := float32(0.0)
 	for i := 0; i < d.numIndices(); i++ {
 		idx := d.getIndex(i)
-		if idx == nil || idx.priority != minPriority {
+		if idx == nil {
+			continue
+		}
+
+		idxProbability, idxPriority := unpackPriorityProbability(idx.probAndPrio)
+
+		if idxPriority != minPriority {
 			continue
 		}
 
 		p.cdfIdx = append(p.cdfIdx, i)
-		nextProb := prev + idx.probability
+		nextProb := prev + idxProbability
 		p.cdf = append(p.cdf, nextProb)
 		prev = nextProb
-		probSum += idx.probability
+		probSum += idxProbability
 	}
 
 	if len(p.cdf) == 0 {
