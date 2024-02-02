@@ -189,14 +189,8 @@ func (d *Domain) update() {
 	d.model.domainAvailableIndices[d.id] = d.model.domainAvailableIndices[d.id][:0]
 
 	for i := 0; i < d.model.domainNumIndices[d.id]; i++ {
-		probProduct, prioSum := unpackPriorityProbability(d.model.domainIndexDefaultModifiers[d.id][i])
-		for _, modifier := range d.model.domainIndexConstraintModifiers[d.id][i] {
-			prob, prio := unpackPriorityProbability(modifier)
-			probProduct *= prob
-			prioSum += prio
-		}
-		d.model.domainIndexProbability[d.id][i] = probProduct
-		d.model.domainIndexPriority[d.id][i] = prioSum
+		d.model.domainIndexProbability[d.id][i] = d.model.domainIndexProbabilityModifiers[d.id][i].Product()
+		d.model.domainIndexPriority[d.id][i] = d.model.domainIndexPriorityModifiers[d.id][i].Sum()
 	}
 
 	for i := 0; i < d.model.domainNumIndices[d.id]; i++ {

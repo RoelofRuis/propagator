@@ -19,23 +19,18 @@ type Model struct {
 	constraints []boundConstraint
 
 	// Various slices of data describing the domain states in this Model.
-	domainHidden           []bool
-	domainNumIndices       []int
-	domainNames            []string
-	domainEntropy          []float64
-	domainVersions         []int
-	domainSumProbability   []Probability
-	domainMinPriority      []Priority
-	domainIndexProbability [][]Probability
-	domainIndexPriority    [][]Priority
-
-	// deprecated
-	domainIndexDefaultModifiers [][]packedProbPrio
-
-	// deprecated
-	domainIndexConstraintModifiers [][][]packedProbPrio
-
-	domainAvailableIndices [][]int
+	domainHidden                    []bool
+	domainNumIndices                []int
+	domainNames                     []string
+	domainEntropy                   []float64
+	domainVersions                  []int
+	domainSumProbability            []Probability
+	domainMinPriority               []Priority
+	domainIndexProbability          [][]Probability // TODO: can these be removed because we already have the running totals?
+	domainIndexPriority             [][]Priority    // TODO: can these be removed because we already have the running totals?
+	domainIndexProbabilityModifiers [][]*ProbabilityModifiers
+	domainIndexPriorityModifiers    [][]*PriorityModifiers
+	domainAvailableIndices          [][]int
 
 	indexBuffer []int
 }
@@ -46,8 +41,7 @@ func (m *Model) String() string {
 		name := m.domainNames[domain.id]
 		prob := m.domainIndexProbability[domain.id]
 		prio := m.domainIndexPriority[domain.id]
-		mods := m.domainIndexConstraintModifiers[domain.id]
-		b.WriteString(fmt.Sprintf("%s %v %v\n%v\n", name, prob, prio, mods))
+		b.WriteString(fmt.Sprintf("%s %v %v\n", name, prob, prio))
 	}
 	return b.String()
 }

@@ -9,33 +9,31 @@ import (
 // Problem holds information about a constraint satisfaction problem under construction.
 // Use NewProblem to start defining a new problem.
 type Problem struct {
-	model                          *Model
-	domains                        []*Domain
-	nextDomainId                   DomainId
-	domainNames                    []string
-	domainHidden                   []bool
-	domainIndexConstraintModifiers [][][]packedProbPrio
-	domainIndexDefaultModifiers    [][]packedProbPrio
-	domainIndexProbability         [][]Probability
-	domainIndexPriority            [][]Priority
-	domainAvailableIndices         [][]int
-	domainConstraints              map[DomainId][]constraintId
-	constraints                    []boundConstraint
+	model                           *Model
+	domains                         []*Domain
+	nextDomainId                    DomainId
+	domainNames                     []string
+	domainHidden                    []bool
+	domainIndexProbabilityModifiers [][]*ProbabilityModifiers
+	domainIndexPriorityModifiers    [][]*PriorityModifiers
+	domainIndexProbability          [][]Probability
+	domainIndexPriority             [][]Priority
+	domainAvailableIndices          [][]int
+	domainConstraints               map[DomainId][]constraintId
+	constraints                     []boundConstraint
 }
 
 // NewProblem returns a builder with which to define a constraint satisfaction problem.
 func NewProblem() *Problem {
 	return &Problem{
-		model:                          &Model{},
-		domains:                        []*Domain{},
-		nextDomainId:                   0,
-		domainNames:                    []string{},
-		domainHidden:                   []bool{},
-		domainConstraints:              make(map[DomainId][]constraintId),
-		domainIndexConstraintModifiers: [][][]packedProbPrio{},
-		domainIndexDefaultModifiers:    [][]packedProbPrio{},
-		domainAvailableIndices:         [][]int{},
-		constraints:                    []boundConstraint{},
+		model:                  &Model{},
+		domains:                []*Domain{},
+		nextDomainId:           0,
+		domainNames:            []string{},
+		domainHidden:           []bool{},
+		domainConstraints:      make(map[DomainId][]constraintId),
+		domainAvailableIndices: [][]int{},
+		constraints:            []boundConstraint{},
 	}
 }
 
@@ -58,19 +56,11 @@ func (c *Problem) Model() Model {
 	domainMinPriority := make([]Priority, numDomains)
 
 	for i := 0; i < numDomains; i++ {
-		domainNumIndices[i] = len(c.domainIndexDefaultModifiers[i])
+		domainNumIndices[i] = len(c.domainIndexProbability[i])
 		domainEntropy[i] = math.Inf(+1)
 		domainVersions[i] = 0
 		domainSumProbability[i] = 0.0
 		domainMinPriority[i] = 0
-
-		for j := 0; j < domainNumIndices[i]; j++ {
-			modifiers := make([]packedProbPrio, len(c.constraints))
-			for k := 0; k < len(c.constraints); k++ {
-				modifiers[k] = packPriorityProbability(1.0, 0)
-			}
-			c.domainIndexConstraintModifiers[i][j] = modifiers
-		}
 	}
 
 	c.model.Domains = c.domains
@@ -82,8 +72,8 @@ func (c *Problem) Model() Model {
 	c.model.domainVersions = domainVersions
 	c.model.domainSumProbability = domainSumProbability
 	c.model.domainMinPriority = domainMinPriority
-	c.model.domainIndexConstraintModifiers = c.domainIndexConstraintModifiers
-	c.model.domainIndexDefaultModifiers = c.domainIndexDefaultModifiers
+	c.model.domainIndexProbabilityModifiers = c.domainIndexProbabilityModifiers
+	c.model.domainIndexPriorityModifiers = c.domainIndexPriorityModifiers
 	c.model.domainIndexProbability = c.domainIndexProbability
 	c.model.domainIndexPriority = c.domainIndexPriority
 	c.model.domainHidden = c.domainHidden
@@ -146,14 +136,21 @@ func AddHiddenVariableFromValues[T comparable](csp *Problem, name string, values
 // newVariable builds a new variable definition bound to the given problem.
 func newVariable[T comparable](csp *Problem, name string, initialValues []DomainValue[T], hidden bool) *Variable[T] {
 	values := make([]T, len(initialValues))
-	indexConstraintModifiers := make([][]packedProbPrio, len(initialValues))
-	indexDefaultModifiers := make([]packedProbPrio, len(initialValues))
+	indexProbabilityModifiers := make([]*ProbabilityModifiers, len(initialValues))
+	indexPriorityModifiers := make([]*PriorityModifiers, len(initialValues))
 	indexDefaultProbability := make([]Probability, len(initialValues))
 	indexDefaultPriority := make([]Priority, len(initialValues))
 
 	for idx, value := range initialValues {
+		// TODO: only initialize relevant modifiers!!
+		probModifiers := NewProbabilityModifiers()
+		probModifiers.Insert(-1, value.Probability)
+		prioModifiers := NewPriorityModifiers()
+		prioModifiers.Insert(-1, value.Priority)
+
+		indexProbabilityModifiers[idx] = probModifiers
+		indexPriorityModifiers[idx] = prioModifiers
 		indexDefaultProbability[idx] = value.Probability
-		indexDefaultModifiers[idx] = packPriorityProbability(value.Probability, value.Priority)
 		indexDefaultPriority[idx] = value.Priority
 		values[idx] = value.Value
 	}
@@ -175,8 +172,8 @@ func newVariable[T comparable](csp *Problem, name string, initialValues []Domain
 	csp.domainNames = append(csp.domainNames, name)
 	csp.domainIndexProbability = append(csp.domainIndexProbability, indexDefaultProbability)
 	csp.domainIndexPriority = append(csp.domainIndexPriority, indexDefaultPriority)
-	csp.domainIndexConstraintModifiers = append(csp.domainIndexConstraintModifiers, indexConstraintModifiers)
-	csp.domainIndexDefaultModifiers = append(csp.domainIndexDefaultModifiers, indexDefaultModifiers)
+	csp.domainIndexProbabilityModifiers = append(csp.domainIndexProbabilityModifiers, indexProbabilityModifiers)
+	csp.domainIndexPriorityModifiers = append(csp.domainIndexPriorityModifiers, indexPriorityModifiers)
 	csp.domainAvailableIndices = append(csp.domainAvailableIndices, make([]int, 0, len(initialValues)))
 	csp.domainHidden = append(csp.domainHidden, hidden)
 

@@ -75,9 +75,9 @@ var DoNothing = Mutation{}
 
 // reverseIndex stores an indexId and constraintId together with probability and priority so it can be reversed.
 type reverseIndex struct {
-	indexId      int
-	constraintId constraintId
-	oldProbPrio  packedProbPrio
+	indexId     int
+	oldProbMods *ProbabilityModifiers
+	oldPrioMods *PriorityModifiers
 }
 
 // apply applies the changes defined by this mutation and tracks the changed indices, so they can be reverted.
@@ -89,41 +89,34 @@ func (u *Mutation) apply() {
 			continue
 		}
 
-		var currentProbPrio packedProbPrio
-		if u.constraintId == -1 {
-			currentProbPrio = u.domain.model.domainIndexDefaultModifiers[u.domain.id][i]
-		} else {
-			currentProbPrio = u.domain.model.domainIndexConstraintModifiers[u.domain.id][i][u.constraintId]
-		}
+		probMods := u.domain.model.domainIndexProbabilityModifiers[u.domain.id][i]
+		prioMods := u.domain.model.domainIndexPriorityModifiers[u.domain.id][i]
 
-		currentProbability, currentPriority := unpackPriorityProbability(currentProbPrio)
+		currentProbability, hasProbability := probMods.Get(u.constraintId)
+		currentPriority, hasPriority := prioMods.Get(u.constraintId)
 
-		shouldUpdateProbability := u.probability < currentProbability
-		shouldUpdatePriority := u.priority > currentPriority
+		shouldUpdateProbability := !hasProbability || u.probability < currentProbability
+		shouldUpdatePriority := !hasPriority || u.priority > currentPriority
 
 		if !shouldUpdateProbability && !shouldUpdatePriority {
 			continue
 		}
 
-		adjustedProbability := Probability(1.0)
-		adjustedPriority := Priority(0)
+		revIdx := reverseIndex{indexId: i}
 
 		if shouldUpdateProbability {
-			adjustedProbability = u.probability
+			revIdx.oldProbMods = probMods.Clone()
+			probMods.Insert(u.constraintId, u.probability)
+			u.domain.model.domainIndexProbabilityModifiers[u.domain.id][i] = probMods
 		}
 
 		if shouldUpdatePriority {
-			adjustedPriority = u.priority
+			revIdx.oldPrioMods = prioMods.Clone()
+			prioMods.Insert(u.constraintId, u.priority)
+			u.domain.model.domainIndexPriorityModifiers[u.domain.id][i] = prioMods
 		}
 
-		adjustedProbPrio := packPriorityProbability(adjustedProbability, adjustedPriority)
-
-		if u.constraintId == -1 {
-			u.domain.model.domainIndexDefaultModifiers[u.domain.id][i] = adjustedProbPrio
-		} else {
-			u.domain.model.domainIndexConstraintModifiers[u.domain.id][i][u.constraintId] = adjustedProbPrio
-		}
-		u.reverseIndices = append(u.reverseIndices, reverseIndex{indexId: i, constraintId: u.constraintId, oldProbPrio: currentProbPrio})
+		u.reverseIndices = append(u.reverseIndices, revIdx)
 	}
 
 	if len(u.reverseIndices) > 0 {
@@ -138,10 +131,11 @@ func (u *Mutation) revert() {
 	}
 
 	for _, revIdx := range u.reverseIndices {
-		if u.constraintId == -1 {
-			u.domain.model.domainIndexDefaultModifiers[u.domain.id][revIdx.indexId] = revIdx.oldProbPrio
-		} else {
-			u.domain.model.domainIndexConstraintModifiers[u.domain.id][revIdx.indexId][revIdx.constraintId] = revIdx.oldProbPrio
+		if revIdx.oldProbMods != nil {
+			u.domain.model.domainIndexProbabilityModifiers[u.domain.id][revIdx.indexId] = revIdx.oldProbMods
+		}
+		if revIdx.oldPrioMods != nil {
+			u.domain.model.domainIndexPriorityModifiers[u.domain.id][revIdx.indexId] = revIdx.oldPrioMods
 		}
 	}
 
