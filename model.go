@@ -13,6 +13,7 @@ type Model struct {
 	// constraints holds all constraints indexed by their constraintId.
 	constraints []boundConstraint
 
+	// various slices of data indexed by constraint id.
 	domainHidden           []bool
 	domainNumIndices       []int
 	domainNames            []string
