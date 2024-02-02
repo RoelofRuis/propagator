@@ -177,13 +177,13 @@ func (p *ProbabilisticIndexPicker) nextIndex(d *Domain) int {
 
 	probSum := float32(0.0)
 	prev := float32(0.0)
-	for i := 0; i < d.numIndices(); i++ {
-		idx := d.getIndex(i)
-		if idx == nil {
+	for i := 0; i < d.model.domainNumIndices[d.id]; i++ {
+		idxProbability := d.model.domainIndexProbability[d.id][i]
+		if idxProbability < 10e-10 {
 			continue
 		}
 
-		idxProbability, idxPriority := unpackPriorityProbability(idx.probAndPrio)
+		idxPriority := d.model.domainIndexPriority[d.id][i]
 
 		if idxPriority != minPriority {
 			continue

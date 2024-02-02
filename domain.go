@@ -13,7 +13,7 @@ type Domain struct {
 
 // Assign creates a Mutation that assigns the given index to this domain.
 func (d *Domain) Assign(index int) Mutation {
-	if index >= len(d.model.domainIndices[d.id]) {
+	if index >= d.model.domainNumIndices[d.id] {
 		return d.Contradict()
 	}
 
@@ -86,14 +86,12 @@ func (d *Domain) IsInContradiction() bool {
 
 // IndexPriority returns the priority of the given index.
 func (d *Domain) IndexPriority(index int) Priority {
-	_, priority := unpackPriorityProbability(d.indices()[index].probAndPrio)
-	return priority
+	return d.model.domainIndexPriority[d.id][index]
 }
 
 // IndexProbability returns the probability of the given index.
 func (d *Domain) IndexProbability(index int) Probability {
-	probability, _ := unpackPriorityProbability(d.indices()[index].probAndPrio)
-	return probability
+	return d.model.domainIndexProbability[d.id][index]
 }
 
 // Name returns the name of this domain.
@@ -118,20 +116,8 @@ func (d *Domain) CanBePicked() bool {
 	return d.IsUnassigned() && !d.IsHidden()
 }
 
-func (d *Domain) numIndices() int {
-	return d.model.domainNumIndices[d.id]
-}
-
 func (d *Domain) version() int {
 	return d.model.domainVersions[d.id]
-}
-
-func (d *Domain) getIndex(i int) *index {
-	return d.model.domainIndices[d.id][i]
-}
-
-func (d *Domain) setIndex(i int, idx *index) {
-	d.model.domainIndices[d.id][i] = idx
 }
 
 func (d *Domain) sumProbability() Probability {
@@ -140,10 +126,6 @@ func (d *Domain) sumProbability() Probability {
 
 func (d *Domain) minPriority() Priority {
 	return d.model.domainMinPriority[d.id]
-}
-
-func (d *Domain) indices() []*index {
-	return d.model.domainIndices[d.id]
 }
 
 // numRelevantConstraints returns the number of constraints that this domain shares with other domains that are still
@@ -177,12 +159,14 @@ func (d *Domain) entropy() float64 {
 	}
 
 	entropy := 0.0
-	for _, idx := range d.indices() {
-		if idx == nil {
+	for i := 0; i < d.model.domainNumIndices[d.id]; i++ {
+		idxProbability := d.model.domainIndexProbability[d.id][i]
+
+		if idxProbability < 10e-10 {
 			continue
 		}
 
-		idxProbability, idxPriority := unpackPriorityProbability(idx.probAndPrio)
+		idxPriority := d.model.domainIndexPriority[d.id][i]
 
 		if idxPriority != d.minPriority() {
 			continue
@@ -204,25 +188,42 @@ func (d *Domain) update() {
 	d.model.domainEntropy[d.id] = math.Inf(+1)
 	d.model.domainAvailableIndices[d.id] = d.model.domainAvailableIndices[d.id][:0]
 
-	for i, idx := range d.model.domainIndices[d.id] {
-		if idx != nil {
-			d.model.domainAvailableIndices[d.id] = append(d.model.domainAvailableIndices[d.id], i)
+	for i := 0; i < d.model.domainNumIndices[d.id]; i++ {
+		probProduct, prioSum := unpackPriorityProbability(d.model.domainIndexDefaultModifiers[d.id][i])
+		for _, modifier := range d.model.domainIndexConstraintModifiers[d.id][i] {
+			prob, prio := unpackPriorityProbability(modifier)
+			probProduct *= prob
+			prioSum += prio
+		}
+		d.model.domainIndexProbability[d.id][i] = probProduct
+		d.model.domainIndexPriority[d.id][i] = prioSum
+	}
 
-			_, idxPriority := unpackPriorityProbability(idx.probAndPrio)
+	for i := 0; i < d.model.domainNumIndices[d.id]; i++ {
+		idxProbability := d.model.domainIndexProbability[d.id][i]
+		if idxProbability < 10e-10 {
+			continue
+		}
 
-			if idxPriority < d.model.domainMinPriority[d.id] {
-				d.model.domainMinPriority[d.id] = idxPriority
-			}
+		d.model.domainAvailableIndices[d.id] = append(d.model.domainAvailableIndices[d.id], i)
+
+		idxPriority := d.model.domainIndexPriority[d.id][i]
+
+		if idxPriority < d.model.domainMinPriority[d.id] {
+			d.model.domainMinPriority[d.id] = idxPriority
 		}
 	}
 
-	for _, idx := range d.model.domainIndices[d.id] {
-		if idx != nil {
-			idxProbability, idxPriority := unpackPriorityProbability(idx.probAndPrio)
+	for i := 0; i < d.model.domainNumIndices[d.id]; i++ {
+		idxProbability := d.model.domainIndexProbability[d.id][i]
+		if idxProbability < 10e-10 {
+			continue
+		}
 
-			if idxPriority == d.model.domainMinPriority[d.id] {
-				d.model.domainSumProbability[d.id] += idxProbability
-			}
+		idxPriority := d.model.domainIndexPriority[d.id][i]
+
+		if idxPriority == d.model.domainMinPriority[d.id] {
+			d.model.domainSumProbability[d.id] += idxProbability
 		}
 	}
 }

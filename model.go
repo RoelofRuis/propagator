@@ -1,5 +1,10 @@
 package propagator
 
+import (
+	"fmt"
+	"strings"
+)
+
 // DomainId is a reference to a domain.
 type DomainId = int
 
@@ -13,7 +18,7 @@ type Model struct {
 	// constraints holds all constraints indexed by their constraintId.
 	constraints []boundConstraint
 
-	// various slices of data indexed by constraint id.
+	// Various slices of data describing the domain states in this Model.
 	domainHidden           []bool
 	domainNumIndices       []int
 	domainNames            []string
@@ -21,10 +26,30 @@ type Model struct {
 	domainVersions         []int
 	domainSumProbability   []Probability
 	domainMinPriority      []Priority
-	domainIndices          [][]*index
+	domainIndexProbability [][]Probability
+	domainIndexPriority    [][]Priority
+
+	// deprecated
+	domainIndexDefaultModifiers [][]packedProbPrio
+
+	// deprecated
+	domainIndexConstraintModifiers [][][]packedProbPrio
+
 	domainAvailableIndices [][]int
 
 	indexBuffer []int
+}
+
+func (m *Model) String() string {
+	b := strings.Builder{}
+	for _, domain := range m.Domains {
+		name := m.domainNames[domain.id]
+		prob := m.domainIndexProbability[domain.id]
+		prio := m.domainIndexPriority[domain.id]
+		mods := m.domainIndexConstraintModifiers[domain.id]
+		b.WriteString(fmt.Sprintf("%s %v %v\n%v\n", name, prob, prio, mods))
+	}
+	return b.String()
 }
 
 // boundConstraint defines the link between a Constraint and its related Domains.
