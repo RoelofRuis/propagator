@@ -92,8 +92,8 @@ func (u *Mutation) apply() {
 		probMods := u.domain.model.domainIndexProbabilityModifiers[u.domain.id][i]
 		prioMods := u.domain.model.domainIndexPriorityModifiers[u.domain.id][i]
 
-		currentProbability, hasProbability := probMods.Get(u.constraintId)
-		currentPriority, hasPriority := prioMods.Get(u.constraintId)
+		currentProbability, hasProbability := probMods.Data[u.constraintId]
+		currentPriority, hasPriority := prioMods.Data[u.constraintId]
 
 		shouldUpdateProbability := !hasProbability || u.probability < currentProbability
 		shouldUpdatePriority := !hasPriority || u.priority > currentPriority

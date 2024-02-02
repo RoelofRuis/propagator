@@ -2,78 +2,60 @@ package propagator
 
 // ProbabilityModifiers stores probability modifiers together with a running product.
 type ProbabilityModifiers struct {
-	inner   map[constraintId]Probability
-	product Probability
+	Data               map[constraintId]Probability
+	ProbabilityProduct Probability
 }
 
 func NewProbabilityModifiers() *ProbabilityModifiers {
 	return &ProbabilityModifiers{
-		inner:   make(map[constraintId]Probability),
-		product: 1.0,
+		Data:               make(map[constraintId]Probability),
+		ProbabilityProduct: 1.0,
 	}
 }
 
 func (m *ProbabilityModifiers) Clone() *ProbabilityModifiers {
 	clone := make(map[constraintId]Probability)
-	for k, v := range m.inner {
+	for k, v := range m.Data {
 		clone[k] = v
 	}
-	return &ProbabilityModifiers{inner: clone, product: m.product}
+	return &ProbabilityModifiers{Data: clone, ProbabilityProduct: m.ProbabilityProduct}
 }
 
 func (m *ProbabilityModifiers) Insert(k constraintId, p Probability) {
-	oldValue, exists := m.inner[k]
+	oldValue, exists := m.Data[k]
 	if exists {
-		m.product = m.product / oldValue
+		m.ProbabilityProduct = m.ProbabilityProduct / oldValue
 	}
-	m.inner[k] = p
-	m.product = m.product * p
-}
-
-func (m *ProbabilityModifiers) Get(k constraintId) (Probability, bool) {
-	value, exists := m.inner[k]
-	return value, exists
-}
-
-func (m *ProbabilityModifiers) Product() Probability {
-	return m.product
+	m.Data[k] = p
+	m.ProbabilityProduct = m.ProbabilityProduct * p
 }
 
 // PriorityModifiers stores priority modifiers together with a running sum.
 type PriorityModifiers struct {
-	inner map[constraintId]Priority
-	sum   Priority
+	Data        map[constraintId]Priority
+	PrioritySum Priority
 }
 
 func NewPriorityModifiers() *PriorityModifiers {
 	return &PriorityModifiers{
-		inner: make(map[constraintId]Priority),
-		sum:   0,
+		Data:        make(map[constraintId]Priority),
+		PrioritySum: 0,
 	}
 }
 
 func (m *PriorityModifiers) Clone() *PriorityModifiers {
 	clone := make(map[constraintId]Priority)
-	for k, v := range m.inner {
+	for k, v := range m.Data {
 		clone[k] = v
 	}
-	return &PriorityModifiers{inner: clone, sum: m.sum}
+	return &PriorityModifiers{Data: clone, PrioritySum: m.PrioritySum}
 }
 
 func (m *PriorityModifiers) Insert(k constraintId, p Priority) {
-	oldValue, exists := m.inner[k]
+	oldValue, exists := m.Data[k]
 	if exists {
-		m.sum = m.sum - oldValue
+		m.PrioritySum = m.PrioritySum - oldValue
 	}
-	m.inner[k] = p
-	m.sum = m.sum + p
-}
-
-func (m *PriorityModifiers) Get(k constraintId) (Priority, bool) {
-	value, exists := m.inner[k]
-	return value, exists
-}
-
-func (m *PriorityModifiers) Sum() Priority {
-	return m.sum
+	m.Data[k] = p
+	m.PrioritySum = m.PrioritySum + p
 }
