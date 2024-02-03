@@ -14,8 +14,8 @@ type Problem struct {
 	nextDomainId                    DomainId
 	domainNames                     []string
 	domainHidden                    []bool
-	domainIndexProbabilityModifiers [][]*ProbabilityModifiers
-	domainIndexPriorityModifiers    [][]*PriorityModifiers
+	domainIndexProbabilityModifiers [][]*probabilityModifiers
+	domainIndexPriorityModifiers    [][]*priorityModifiers
 	domainIndexProbability          [][]Probability
 	domainIndexPriority             [][]Priority
 	domainAvailableIndices          [][]int
@@ -136,17 +136,14 @@ func AddHiddenVariableFromValues[T comparable](csp *Problem, name string, values
 // newVariable builds a new variable definition bound to the given problem.
 func newVariable[T comparable](csp *Problem, name string, initialValues []DomainValue[T], hidden bool) *Variable[T] {
 	values := make([]T, len(initialValues))
-	indexProbabilityModifiers := make([]*ProbabilityModifiers, len(initialValues))
-	indexPriorityModifiers := make([]*PriorityModifiers, len(initialValues))
+	indexProbabilityModifiers := make([]*probabilityModifiers, len(initialValues))
+	indexPriorityModifiers := make([]*priorityModifiers, len(initialValues))
 	indexDefaultProbability := make([]Probability, len(initialValues))
 	indexDefaultPriority := make([]Priority, len(initialValues))
 
 	for idx, value := range initialValues {
-		// TODO: only initialize relevant modifiers!!
-		probModifiers := NewProbabilityModifiers()
-		probModifiers.Insert(-1, value.Probability)
-		prioModifiers := NewPriorityModifiers()
-		prioModifiers.Insert(-1, value.Priority)
+		probModifiers := insertProbability(newProbabilityModifiers(), -1, value.Probability)
+		prioModifiers := insertPriority(newPriorityModifiers(), -1, value.Priority)
 
 		indexProbabilityModifiers[idx] = probModifiers
 		indexPriorityModifiers[idx] = prioModifiers

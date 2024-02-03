@@ -76,8 +76,8 @@ var DoNothing = Mutation{}
 // reverseIndex stores an indexId and constraintId together with probability and priority so it can be reversed.
 type reverseIndex struct {
 	indexId     int
-	oldProbMods *ProbabilityModifiers
-	oldPrioMods *PriorityModifiers
+	oldProbMods *probabilityModifiers
+	oldPrioMods *priorityModifiers
 }
 
 // apply applies the changes defined by this mutation and tracks the changed indices, so they can be reverted.
@@ -105,15 +105,13 @@ func (u *Mutation) apply() {
 		revIdx := reverseIndex{indexId: i}
 
 		if shouldUpdateProbability {
-			revIdx.oldProbMods = probMods.Clone()
-			probMods.Insert(u.constraintId, u.probability)
-			u.domain.model.domainIndexProbabilityModifiers[u.domain.id][i] = probMods
+			revIdx.oldProbMods = probMods
+			u.domain.model.domainIndexProbabilityModifiers[u.domain.id][i] = insertProbability(probMods, u.constraintId, u.probability)
 		}
 
 		if shouldUpdatePriority {
-			revIdx.oldPrioMods = prioMods.Clone()
-			prioMods.Insert(u.constraintId, u.priority)
-			u.domain.model.domainIndexPriorityModifiers[u.domain.id][i] = prioMods
+			revIdx.oldPrioMods = prioMods
+			u.domain.model.domainIndexPriorityModifiers[u.domain.id][i] = insertPriority(prioMods, u.constraintId, u.priority)
 		}
 
 		u.reverseIndices = append(u.reverseIndices, revIdx)

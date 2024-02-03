@@ -28,8 +28,8 @@ type Model struct {
 	domainMinPriority               []Priority
 	domainIndexProbability          [][]Probability // TODO: can these be removed because we already have the running totals?
 	domainIndexPriority             [][]Priority    // TODO: can these be removed because we already have the running totals?
-	domainIndexProbabilityModifiers [][]*ProbabilityModifiers
-	domainIndexPriorityModifiers    [][]*PriorityModifiers
+	domainIndexProbabilityModifiers [][]*probabilityModifiers
+	domainIndexPriorityModifiers    [][]*priorityModifiers
 	domainAvailableIndices          [][]int
 
 	indexBuffer []int
