@@ -42,9 +42,13 @@ type DomainValue[T comparable] struct {
 	Value       T
 }
 
-// AsDomainValue wraps the value to be used as a DomainValue with default priority of 0 and default probability of 1.0.
-func AsDomainValue[T comparable](value T) DomainValue[T] {
-	return DomainValue[T]{0, 1.0, value}
+// AsDomainValues wraps the values to be used as a DomainValue with default priority of 0 and default probability of 1.0.
+func AsDomainValues[T comparable](values ...T) []DomainValue[T] {
+	domainValues := make([]DomainValue[T], len(values))
+	for i, v := range values {
+		domainValues[i] = DomainValue[T]{0, 1.0, v}
+	}
+	return domainValues
 }
 
 // Model returns the initialized model.
