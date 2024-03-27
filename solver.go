@@ -127,6 +127,7 @@ func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
 	return mutator, success
 }
 
+// TODO: this has been separated for use in LeastConstrainingValueIndexPicker
 func evaluate(m Model, queue *ds.SetQueue[*Domain], mutator *Mutator) bool {
 	for {
 		selectedDomain, hasNext := queue.Dequeue()
