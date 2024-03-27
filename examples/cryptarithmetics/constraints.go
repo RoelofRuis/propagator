@@ -82,11 +82,11 @@ func (a AllDifferent) Scope() []propagator.DomainId {
 }
 
 func (a AllDifferent) Propagate(m *propagator.Mutator) {
-	for _, v := range a.Variables {
-		if v.IsAssigned() {
-			for _, w := range a.Variables {
-				if w != v {
-					m.Add(w.ExcludeByValue(v.GetAssignedValue()))
+	for i := 0; i < len(a.Variables); i++ {
+		if a.Variables[i].IsAssigned() {
+			for j := 0; j < len(a.Variables); j++ {
+				if i != j {
+					m.Add(a.Variables[j].ExcludeByValue(a.Variables[i].GetAssignedValue()))
 				}
 			}
 		}
