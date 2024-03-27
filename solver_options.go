@@ -18,7 +18,7 @@ func WithSeed(int int64) SolverOption {
 }
 
 // On hooks a function to the solver when the given SolverEvent fires.
-func On(event SolverEvent, f func()) SolverOption {
+func On(event SolverEvent, f func(m Model)) SolverOption {
 	return func(s *Solver) {
 		s.events.Subscribe(event, f)
 	}
@@ -28,18 +28,15 @@ func On(event SolverEvent, f func()) SolverOption {
 func LogInfo() SolverOption {
 	return func(s *Solver) {
 		round := 0
-		s.events.Subscribe(Start, func() { log.Printf("[SOLVER] Starting\n") })
-		s.events.Subscribe(Failure, func() { log.Print("[SOLVER] Failed finding solution\n") })
-		s.events.Subscribe(SolutionFound, func() { log.Print("[SOLVER] Solution found\n") })
-		s.events.Subscribe(Select, func() {
+		s.events.Subscribe(Start, func(m Model) { log.Printf("[SOLVER] Starting\n") })
+		s.events.Subscribe(Failure, func(m Model) { log.Print("[SOLVER] Failed finding solution\n") })
+		s.events.Subscribe(SolutionFound, func(m Model) { log.Print("[SOLVER] Solution found\n") })
+		s.events.Subscribe(Select, func(m Model) {
 			log.Printf("[SOLVER] Next round (%d)\n", round)
 			round++
 		})
-		s.events.Subscribe(PropagateStart, func() {
+		s.events.Subscribe(PropagateStart, func(m Model) {
 			log.Printf("[SOLVER] Start propagating constraints\n")
-		})
-		s.events.Subscribe(PropagateRound, func() {
-			log.Printf("[SOLVER] Propagate round [Queue size %d]\n", s.queue.Size())
 		})
 	}
 }
@@ -47,7 +44,7 @@ func LogInfo() SolverOption {
 // LogConstraints logs the model constraints when solving is started.
 func LogConstraints(model Model) SolverOption {
 	return func(s *Solver) {
-		s.events.Subscribe(Start, func() {
+		s.events.Subscribe(Start, func(m Model) {
 			log.Printf("CONSTRAINTS:\n")
 			for i, boundConstraint := range model.constraints {
 				constraintName := reflect.TypeOf(boundConstraint.constraint)

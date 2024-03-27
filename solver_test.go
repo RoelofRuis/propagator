@@ -19,7 +19,7 @@ func TestSolver_FindAll(t *testing.T) {
 	solver := NewSolver(
 		WithSeed(0),
 		FindAllSolutions(),
-		On(SolutionFound, func() {
+		On(SolutionFound, func(m Model) {
 			solutions = append(solutions, [2]int{varA.GetAssignedValue(), varB.GetAssignedValue()})
 		}),
 	)
@@ -48,7 +48,7 @@ func TestSolver_FindFirstN(t *testing.T) {
 		FindNSolutions(3),
 		SelectDomainsByMinEntropy(),
 		SelectIndicesProbabilistically(),
-		On(SolutionFound, func() {
+		On(SolutionFound, func(m Model) {
 			solutions = append(solutions, [2]int{varA.GetAssignedValue(), varB.GetAssignedValue()})
 		}),
 	)

@@ -15,7 +15,7 @@ type Solver struct {
 	solutionsFound int
 
 	queue  *ds.SetQueue[*Domain]
-	events *PubSub
+	events *ds.EventBus[Model]
 }
 
 // SolverEvent is used as key to hook functions to the solver.
@@ -28,7 +28,6 @@ const (
 	Failure        SolverEvent = "Failure"
 	SearchStart    SolverEvent = "SearchStart"
 	PropagateStart SolverEvent = "PropagateStart"
-	PropagateRound SolverEvent = "PropagateRound"
 	Select         SolverEvent = "Select"
 )
 
@@ -40,7 +39,7 @@ func NewSolver(options ...SolverOption) Solver {
 		indexPicker:    &ProbabilisticIndexPicker{},
 		solutionsFound: 0,
 		maxSolutions:   1,
-		events:         NewPubsub(),
+		events:         ds.NewEventBus[Model](),
 		queue:          ds.NewSetQueue[*Domain](), // domain ids
 	}
 	for _, opt := range options {
@@ -52,33 +51,33 @@ func NewSolver(options ...SolverOption) Solver {
 // Solve runs the solving algorithm on the Model and returns whether a solution could be found.
 // The model is updated to reflect the found solution.
 func (s *Solver) Solve(model Model) bool {
-	s.events.Publish(Start)
+	s.events.Publish(Start, model)
 
 	s.domainPicker.init(model, s.rnd)
 	s.indexPicker.init(model, s.rnd)
 
 	mutations, success := s.propagate(model, model.Domains...)
 	if success {
-		s.events.Publish(SearchStart)
+		s.events.Publish(SearchStart, model)
 		s.selectNext(0, model)
 	}
 
 	hasSolutions := s.solutionsFound > 0
 	if !hasSolutions {
-		s.events.Publish(Failure)
+		s.events.Publish(Failure, model)
 		mutations.revertAll()
 	}
 
-	s.events.Publish(Finished)
+	s.events.Publish(Finished, model)
 	return hasSolutions
 }
 
 func (s *Solver) selectNext(level int, model Model) bool {
-	s.events.Publish(Select)
+	s.events.Publish(Select, model)
 
 	if model.IsSolved() {
 		s.solutionsFound++
-		s.events.Publish(SolutionFound)
+		s.events.Publish(SolutionFound, model)
 		if s.maxSolutions > 0 && (s.maxSolutions == s.solutionsFound) {
 			return true
 		}
@@ -116,7 +115,7 @@ func (s *Solver) selectNext(level int, model Model) bool {
 }
 
 func (s *Solver) propagate(model Model, domains ...*Domain) (*Mutator, bool) {
-	s.events.Publish(PropagateStart)
+	s.events.Publish(PropagateStart, model)
 	for _, domain := range domains {
 		s.queue.Enqueue(domain)
 	}
