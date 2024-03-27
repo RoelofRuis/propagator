@@ -5,10 +5,23 @@ import (
 	"github.com/RoelofRuis/propagator"
 )
 
+var letters = []string{"S", "E", "N", "D", "M", "O", "R", "Y"}
+
 // TODO: improve example with hidden variables
 func main() {
-	letters := []string{"S", "E", "N", "D", "M", "O", "R", "Y"}
+	solver := propagator.NewSolver()
 
+	variables, n1, n2, n3 := Solve(solver)
+
+	for _, letter := range letters {
+		variable := variables[letter]
+		fmt.Printf("%s: %d\n", letter, variable.GetAssignedValue())
+	}
+
+	fmt.Printf("\n%d\n%d\n---- +\n%d", n1.Decimal(), n2.Decimal(), n3.Decimal())
+}
+
+func Solve(solver propagator.Solver) (map[string]*propagator.Variable[int], Number, Number, Number) {
 	digits := []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}
 
 	csp := propagator.NewProblem()
@@ -34,16 +47,9 @@ func main() {
 
 	model := csp.Model()
 
-	solver := propagator.NewSolver()
-
 	if !solver.Solve(model) {
 		panic("no solution")
 	}
 
-	for _, letter := range letters {
-		variable := variables[letter]
-		fmt.Printf("%s: %d\n", letter, variable.GetAssignedValue())
-	}
-
-	fmt.Printf("\n%d\n%d\n---- +\n%d", n1.Decimal(), n2.Decimal(), n3.Decimal())
+	return variables, n1, n2, n3
 }

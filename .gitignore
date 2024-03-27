@@ -1,1 +1,6 @@
 .idea/
+
+# testing/benchmarking
+*.test
+profile*.png
+profile/*.prof

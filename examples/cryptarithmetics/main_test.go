@@ -5,14 +5,12 @@ import (
 	"testing"
 )
 
-func BenchmarkSolvePixelMatrix(b *testing.B) {
+func BenchmarkSolve(b *testing.B) {
 	solver := propagator.NewSolver(
-		propagator.SelectDomainsByMinEntropy(),
-		propagator.SelectIndicesProbabilistically(),
 		propagator.WithSeed(0),
 	)
 
 	for i := 0; i < b.N; i++ {
-		SolvePixelMatrix(32, solver)
+		Solve(solver)
 	}
 }
