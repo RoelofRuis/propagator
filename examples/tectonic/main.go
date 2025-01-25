@@ -58,7 +58,7 @@ type CellData struct {
 }
 
 func main() {
-	content, err := os.ReadFile("examples/tectonic/puzzle2.txt")
+	content, err := os.ReadFile("examples/tectonic/puzzle3.txt")
 	if err != nil {
 		log.Panic(err)
 	}
