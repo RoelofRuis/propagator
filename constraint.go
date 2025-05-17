@@ -14,7 +14,12 @@ type constraintId = int
 func IdsOf[T comparable](vars ...*Variable[T]) []DomainId {
 	domainIds := make([]DomainId, 0, len(vars))
 	for _, v := range vars {
-		domainIds = append(domainIds, v.Domain.id)
+		domainIds = append(domainIds, IdOf(v))
 	}
 	return domainIds
+}
+
+// IdOf extracts the DomainID from a single variable.
+func IdOf[T comparable](v *Variable[T]) DomainId {
+	return v.Domain.id
 }
